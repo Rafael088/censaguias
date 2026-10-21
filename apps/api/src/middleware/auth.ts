@@ -18,8 +18,8 @@ export const requireStaff = (...roles: Role[]) =>
     const { data: user, error } = await db.auth.getUser(token);
     if (error || !user.user) throw new HTTPException(401, { message: "Sesión inválida" });
 
-    const { data: profile } = await db.from("profiles").select("role").eq("id", user.user.id).single();
-    if (!profile || (roles.length > 0 && !roles.includes(profile.role))) {
+    const { data: profile } = await db.from("profiles").select("role, active").eq("id", user.user.id).single();
+    if (!profile || !profile.active || (roles.length > 0 && !roles.includes(profile.role))) {
       throw new HTTPException(403, { message: "Sin permiso" });
     }
     c.set("staff", { id: user.user.id, role: profile.role });
@@ -34,10 +34,11 @@ export const requireStudent = createMiddleware<{ Variables: AppVars }>(async (c,
 
   const { data: group } = await supabaseAdmin()
     .from("groups")
-    .select("code_version, archived_at")
+    .select("code_version")
     .eq("id", session.groupId)
     .single();
-  if (!group || group.archived_at || group.code_version !== session.codeVersion) {
+  // Grupo eliminado o código regenerado → la sesión cae.
+  if (!group || group.code_version !== session.codeVersion) {
     throw new HTTPException(401, { message: "El código ya no es válido" });
   }
   c.set("student", session);

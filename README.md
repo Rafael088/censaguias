@@ -1,7 +1,7 @@
 # CensaGuias
 
-Las guías en PDF de las asignaturas de un grupo, en un solo lugar y sin Drive.
-Los estudiantes entran con el **código de acceso** de su grupo; los profesores suben las guías de sus asignaturas; el admin organiza grupos, asignaturas y profesores.
+Tus materias y guías, en un solo lugar. Es la plataforma educativa de CENSA para compartir las guías en PDF de cada grupo CLEI sin Drive.
+Los estudiantes entran con el **código de su grupo**, sin crear cuenta. Los profesores publican las guías de sus materias y el administrador organiza grupos, materias y docentes.
 
 **Stack**: Next.js 16 · Hono 4 · Supabase (Postgres, Auth, Storage) · TypeScript · npm workspaces.
 
@@ -23,6 +23,6 @@ npm run dev:web   # http://localhost:3000
 
 - [AGENTS.md](AGENTS.md) — reglas y convenciones (para personas y agentes de IA)
 - [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md) — cómo encaja todo
-- [docs/DISENO.md](docs/DISENO.md) — diseño y Figma
+- [docs/DISENO.md](docs/DISENO.md) — sistema de diseño y pantallas ([imágenes](docs/diseno/))
 - [docs/decisiones/](docs/decisiones/) — decisiones de arquitectura (ADRs)
 - [docs/PLANNING-v0.1.0.md](docs/PLANNING-v0.1.0.md) — planning del MVP

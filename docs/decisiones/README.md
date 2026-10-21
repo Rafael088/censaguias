@@ -9,3 +9,4 @@ Una decisión por archivo: `NNNN-titulo.md` con **Contexto**, **Decisión** y **
 | [0003](0003-api-unica-puerta-a-supabase.md) | La API es la única puerta a Supabase | Aceptada |
 | [0004](0004-codigo-de-acceso.md) | Estudiantes sin cuenta: código de acceso por grupo | Aceptada |
 | [0005](0005-pdfs-en-supabase-storage.md) | PDFs en Supabase Storage, privados, con URL firmada | Aceptada |
+| [0006](0006-usuario-institucional.md) | El staff entra con usuario institucional y la cuenta la crea el admin | Aceptada |

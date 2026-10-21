@@ -4,11 +4,11 @@ Lee esto antes de tocar el repo. Vale para cualquier agente (Claude Code, Codex,
 
 ## Qué es
 
-CensaGuias centraliza las guías en PDF de las asignaturas de un grupo, para que los estudiantes no dependan de Drive.
+CensaGuias es la plataforma educativa de CENSA. Reúne en un solo lugar las guías en PDF de las materias de cada grupo CLEI, para que los estudiantes no dependan de Drive.
 
-- **Admin**: crea grupos (al crearlo se genera un **código de acceso**), crea asignaturas dentro del grupo, invita profesores y los asigna a asignaturas.
-- **Profesor**: inicia sesión con correo; ve solo sus asignaturas; sube, edita y borra guías de esas asignaturas.
-- **Estudiante**: **no tiene cuenta**. Escribe el código del grupo → ve las asignaturas del grupo → abre/descarga las guías.
+- **Admin**: crea grupos CLEI (CLEI I–VI, identificador A/B/C…, jornada Mañana/Noche/Sabatina, año lectivo). Al crear un grupo se genera su **código de acceso** (`CENSA-4AM-26-K7QX`). Crea las materias del grupo, cada una con **un** profesor, y registra a los profesores con usuario institucional y contraseña temporal.
+- **Profesor**: entra con **usuario institucional** (no con correo). Solo ve sus materias. Crea guías (tema, título, descripción y PDF ≤ 10 MB) como **borrador** o **publicadas**; también las edita, publica y elimina.
+- **Estudiante**: **no tiene cuenta**. Escribe el código del grupo y ve sus materias y solo las guías **publicadas**. Puede abrirlas, descargarlas, salir o cambiar de código.
 
 ## Mapa del repo
 
@@ -17,7 +17,7 @@ apps/web        Next.js 16 (App Router) + Tailwind 4. UI. Llama a la API por /ap
 apps/api        Hono 4 sobre Node. Única puerta a Supabase. Exporta `AppType` para el cliente tipado.
 packages/shared Esquemas zod y constantes compartidas (código de acceso, límites del PDF).
 supabase/       Migraciones SQL (fuente de verdad del esquema) y seed.
-docs/           ARQUITECTURA.md, DISENO.md, PLANNING-v0.1.0.md, decisiones/ (ADRs).
+docs/           ARQUITECTURA.md, DISENO.md, PLANNING-v0.1.0.md, decisiones/ (ADRs), diseno/ (pantallas del Figma en PNG).
 ```
 
 Más detalle: [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md). Por qué es así: [docs/decisiones/](docs/decisiones/).
@@ -26,12 +26,12 @@ Más detalle: [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md). Por qué es así: [d
 
 1. **El navegador nunca habla con las tablas ni con Storage de Supabase.** Todo pasa por `apps/api`. El front solo usa Supabase Auth para el login de staff (ADR 0003).
 2. **`SUPABASE_SERVICE_ROLE_KEY` vive solo en `apps/api`.** Nunca en `apps/web`, nunca con prefijo `NEXT_PUBLIC_`, nunca en git.
-3. **Autorizar en la API, siempre.** Cada ruta pasa por `requireStaff(...)` o `requireStudent`. Un profesor solo toca asignaturas donde está en `subject_teachers`; un estudiante solo ve el `group_id` de su sesión. Como el cliente de la API salta RLS, si una ruta no comprueba, nadie más lo hará.
+3. **Autorizar en la API, siempre.** Cada ruta pasa por `requireStaff(...)` o `requireStudent`. Un profesor solo toca materias con `subjects.teacher_id = su id`. Un estudiante solo ve el `group_id` de su sesión y solo guías con `status = 'published'`. Como el cliente de la API salta RLS, si una ruta no comprueba, nadie más lo hará.
 4. **El esquema cambia solo con migraciones nuevas** en `supabase/migrations/` (`YYYYMMDDHHMMSS_que_hace.sql`). Nunca edites una migración ya mergeada.
 5. **No dupliques tipos de la API en el front.** Usa `api` de `apps/web/lib/api.ts` (`hc<AppType>`); las respuestas se tipan solas. Los esquemas de entrada van en `packages/shared`.
 6. **Los PDF se descargan con URL firmada de corta vida** (60 s) que genera la API. El bucket `guides` es privado.
 7. **El rol nunca sale de datos que escribe el usuario** (metadatos de Auth, body de la request). Sale de `profiles.role`.
-8. La UI sigue el Figma (ver [docs/DISENO.md](docs/DISENO.md)). Si el Figma no cubre un caso, sigue los componentes que ya existen; no inventes un estilo nuevo.
+8. **La UI sigue el Figma.** Antes de construir una pantalla, abre su imagen en `docs/diseno/` y lee [docs/DISENO.md](docs/DISENO.md). Usa los tokens (`bg-primary`, `text-ink`, `bg-tint`, `rounded-card`…), nunca hex sueltos. Solo verdes y blanco: un error se marca con icono y texto, no con rojo. Copia los textos del Figma tal cual. Si el Figma no cubre un caso, sigue los componentes que ya existen.
 
 ## Convenciones
 

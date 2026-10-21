@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { setCookie, deleteCookie } from "hono/cookie";
 import { zValidator } from "@hono/zod-validator";
-import { accessCodeInput } from "@censaguias/shared";
+import { accessCodeInput, groupLabel, SHIFT_LABEL, type Shift } from "@censaguias/shared";
 import { supabaseAdmin } from "../lib/supabase.js";
 import { STUDENT_COOKIE, STUDENT_SESSION_DAYS, signStudentSession } from "../lib/student-session.js";
 
@@ -16,9 +16,8 @@ export const accessRoutes = new Hono()
     const { code } = c.req.valid("json");
     const { data: group } = await supabaseAdmin()
       .from("groups")
-      .select("id, name, code_version")
+      .select("id, clei, identifier, shift, school_year, code_version")
       .eq("access_code", code)
-      .is("archived_at", null)
       .maybeSingle();
     if (!group) return c.json({ error: "Código no válido" }, 404);
 
@@ -30,7 +29,14 @@ export const accessRoutes = new Hono()
       path: "/",
       maxAge: STUDENT_SESSION_DAYS * 24 * 60 * 60,
     });
-    return c.json({ group: { id: group.id as string, name: group.name as string } });
+    return c.json({
+      group: {
+        id: group.id as string,
+        label: groupLabel(group),
+        shift: SHIFT_LABEL[group.shift as Shift],
+        schoolYear: group.school_year as number,
+      },
+    });
     },
   )
   .delete("/", (c) => {

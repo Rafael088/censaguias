@@ -1,10 +1,32 @@
 @import "tailwindcss";
 
-/* Tokens provisionales: se reemplazan por los del Figma en la tarea WEB-01 (docs/DISENO.md). */
+/* Tokens del sistema de diseño CENSA (Figma · "Fundamentos y componentes"). Ver docs/DISENO.md.
+   Solo verdes y blanco. Los estados se distinguen también con texto, icono y borde; nunca solo por color. */
 @theme {
-  --color-brand: #2563eb;
-  --color-ink: #0f172a;
-  --color-muted: #64748b;
-  --color-surface: #ffffff;
-  --font-sans: system-ui, sans-serif;
+  --color-primary: #00843d;   /* Principal: botones, activo, foco */
+  --color-ink: #064a2b;       /* Texto */
+  --color-tint: #e8f5ed;      /* Tinte: avisos, chips, fondos de app, botón deshabilitado */
+  --color-surface: #ffffff;   /* Superficie: tarjetas y paneles */
+  --color-line: #cfe3d6;      /* Bordes de tarjetas y campos (derivado, ajustar si el Figma lo fija) */
+
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+
+  /* Escala: 12 · 13 · 14 · 16 · 20 · 24 · 32 · 40 */
+  --text-meta: 13px;          /* Metadatos 13/400 */
+  --text-label: 14px;         /* Etiquetas 14/600 */
+  --text-body: 16px;          /* Cuerpo 16/400, interlineado 1,45 */
+  --text-body--line-height: 1.45;
+  --text-section: 24px;       /* Título de sección 24/600 */
+  --text-display: 40px;
+
+  /* Radios: control 8 · tarjeta 12 · panel 16 */
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --radius-panel: 16px;
+}
+
+/* Foco de 2 px siempre visible */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }

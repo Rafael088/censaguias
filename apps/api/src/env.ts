@@ -7,6 +7,8 @@ const envSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   STUDENT_SESSION_SECRET: z.string().min(32),
   WEB_ORIGIN: z.url().default("http://localhost:3000"),
+  // Dominio del correo sintético del staff: laura.martinez → laura.martinez@<dominio> (ADR 0006)
+  STAFF_EMAIL_DOMAIN: z.string().default("staff.censaguias.app"),
 });
 
 export type Env = z.infer<typeof envSchema>;
