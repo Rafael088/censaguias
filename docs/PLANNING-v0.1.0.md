@@ -81,11 +81,11 @@ Hay tres frentes que casi no se pisan: **API**, **UI de admin y staff** y **UI d
 
 ## Prueba de aceptación
 
-1. El admin entra con su usuario institucional, crea el grupo CLEI IV · A · Mañana · 2026 y ve un código `CENSA-4AM-26-XXXX`.
+1. El admin entra con su usuario institucional, crea el grupo CLEI IV · A · Mañana · 2026 y ve un código `CENSA-4AM-` más 3 caracteres.
 2. Registra a la profesora `laura.martinez` con una contraseña temporal. Crea las materias Matemáticas (con Laura) y Ciencias Naturales (con otro docente).
 3. Laura entra, ve solo Matemáticas, sube un PDF como borrador y otro publicado, y después publica el borrador.
 4. Laura no puede crear guías en Ciencias Naturales, ni desde la UI ni llamando a la API.
-5. Un estudiante, desde el celular, escribe el código en minúsculas, ve las dos materias y solo las guías publicadas. Abre y descarga un PDF de Matemáticas.
+5. Un estudiante, desde el celular, escribe solo los 6 caracteres del código, en minúsculas y sin guiones, ve las dos materias y solo las guías publicadas. Abre y descarga un PDF de Matemáticas.
 6. El admin regenera el código: al recargar, el estudiante vuelve a la pantalla de código, y el código nuevo funciona.
 7. Diez códigos erróneos seguidos desde la misma IP devuelven 429.
 8. El admin elimina a Laura: Matemáticas queda sin docente y las guías publicadas siguen visibles para el grupo.

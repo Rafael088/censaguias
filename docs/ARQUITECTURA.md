@@ -19,7 +19,7 @@
 |---|---|---|---|
 | Admin | Usuario institucional + contraseña (`POST /v1/auth/login`) | `Authorization: Bearer <access_token>` | `requireStaff("admin")` |
 | Profesor | Usuario + contraseña temporal que le da el admin | `Authorization: Bearer <access_token>` | `requireStaff("teacher")` + `subjects.teacher_id = staff.id` |
-| Estudiante | Código del grupo `CENSA-4AM-26-K7QX` | Cookie `cg_student` (JWT HS256, 30 días, `httpOnly`) | `requireStudent` |
+| Estudiante | Código del grupo `CENSA-4AM-K7Q` | Cookie `cg_student` (JWT HS256, 30 días, `httpOnly`) | `requireStudent` |
 
 - La cookie del estudiante guarda `group_id` y `code_version`. Si el admin **regenera** el código o **elimina** el grupo, la sesión deja de valer en la siguiente request.
 - Un profesor con `active = false` queda fuera aunque su token siga vigente.
@@ -34,13 +34,13 @@ profiles (staff: admin | teacher)
 groups 1 ──────< subjects 1 ──────< guides (draft | published)
  CLEI IV · A                         └─ storage_path → bucket guides/{group_id}/{subject_id}/{guide_id}.pdf
  Mañana · 2026
- CENSA-4AM-26-K7QX
+ CENSA-4AM-K7Q
 ```
 
 | Tabla | Campos clave | Notas |
 |---|---|---|
 | `profiles` | `username`, `full_name`, `role`, `active` | `id` = `auth.users.id`. La crea la API al registrar al profesor. |
-| `groups` | `clei` (1–6), `identifier` (A, B…), `shift` (`morning`/`night`/`saturday`), `school_year`, `access_code`, `code_version` | Único por (clei, identifier, shift, school_year). Se muestra como "CLEI IV · A". |
+| `groups` | `clei` (1–6), `identifier` (una letra), `shift` (`morning`/`night`/`saturday`), `school_year`, `access_code`, `code_version` | Único por (clei, identifier, shift, school_year). Se muestra como "CLEI IV · A". |
 | `subjects` | `group_id`, `name`, `description`, `teacher_id` | Nombre único dentro del grupo. Si se borra el profesor, `teacher_id` queda en null y las guías se conservan. |
 | `guides` | `topic`, `title`, `description`, `status`, `published_at`, `file_name`, `size_bytes`, `page_count` | Los estudiantes solo ven `published`. El tema es texto libre; el front sugiere los temas que ya existen en la materia. |
 

@@ -16,16 +16,21 @@ export const groupLabel = (g: { clei: number; identifier: string }) => `CLEI ${R
 
 // Sufijo aleatorio sin caracteres ambiguos (sin 0/O, 1/I/L).
 export const ACCESS_CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
-export const ACCESS_CODE_REGEX = /^CENSA-[1-6][A-Z]{1,2}[MNS]-\d{2}-[A-HJKMNP-Z2-9]{4}$/;
+export const ACCESS_CODE_SUFFIX_LENGTH = 3;
+export const ACCESS_CODE_REGEX = /^CENSA-[1-6][A-Z][MNS]-[A-HJKMNP-Z2-9]{3}$/;
 
-/** Prefijo legible del código: CENSA-4AM-26 (CLEI IV, grupo A, Mañana, 2026). */
-export function accessCodePrefix(g: { clei: number; identifier: string; shift: Shift; schoolYear: number }): string {
-  return `CENSA-${g.clei}${g.identifier}${SHIFT_LETTER[g.shift]}-${String(g.schoolYear % 100).padStart(2, "0")}`;
+/** Parte legible del código: CENSA-4AM (CLEI IV, grupo A, Mañana). */
+export function accessCodePrefix(g: { clei: number; identifier: string; shift: Shift }): string {
+  return `CENSA-${g.clei}${g.identifier}${SHIFT_LETTER[g.shift]}`;
 }
 
-/** Normaliza lo que escribe el estudiante: mayúsculas, sin espacios, guiones tipográficos → "-". */
+/**
+ * El estudiante solo necesita sus 6 caracteres: "4amk7q", "4AM K7Q", "censa-4am-k7q"… → "CENSA-4AM-K7Q".
+ * Si no tiene 6 caracteres útiles, se devuelve tal cual y la validación lo rechaza.
+ */
 export function normalizeAccessCode(input: string): string {
-  return input.toUpperCase().replace(/\s+/g, "").replace(/[‐-―−]/g, "-");
+  const raw = input.toUpperCase().replace(/[^A-Z0-9]/g, "").replace(/^CENSA/, "");
+  return raw.length === 6 ? `CENSA-${raw.slice(0, 3)}-${raw.slice(3)}` : input.trim().toUpperCase();
 }
 
 export const accessCodeInput = z.object({
@@ -51,7 +56,7 @@ export const createTeacherInput = z.object({
 
 export const createGroupInput = z.object({
   clei: z.number().int().min(1).max(6),
-  identifier: z.string().trim().toUpperCase().regex(/^[A-Z]{1,2}$/),
+  identifier: z.string().trim().toUpperCase().regex(/^[A-Z]$/), // una letra: así el código mide siempre lo mismo
   shift: shiftSchema,
   schoolYear: z.number().int().min(2020).max(2100),
 });

@@ -27,7 +27,7 @@ export function AccessCodeForm() {
         id="code"
         value={code}
         onChange={(e) => setCode(e.target.value)}
-        placeholder="CENSA-4AM-26-K7QX"
+        placeholder="CENSA-4AM-K7Q"
         aria-describedby="code-hint"
         autoComplete="off"
         autoCapitalize="characters"

@@ -2,16 +2,17 @@
 
 **Estado:** Aceptada (2026-10-20)
 
-**Contexto.** Hoy los estudiantes reciben un enlace de Drive. Pedirles registro sería fricción: basta con que la institución comparta un código por grupo. El Figma muestra códigos legibles como `CENSA-4AM-26` (CLEI IV · A · Mañana · 2026). Pero ese formato **se adivina**: con saber el CLEI, el grupo, la jornada y el año, cualquiera entra a cualquier grupo en pocos intentos. Tampoco podría regenerarse, porque saldría siempre el mismo código.
+**Contexto.** Hoy los estudiantes reciben un enlace de Drive. Pedirles registro sería fricción: basta con que la institución comparta un código por grupo. El Figma muestra `CENSA-4AM-26` (CLEI IV · A · Mañana · 2026). Ese formato **se adivina**: con saber el grupo y el año, cualquiera entra a cualquier grupo. Tampoco se puede regenerar, porque daría siempre el mismo código. Además, el estudiante tiene que poder recordarlo.
 
 **Decisión.**
-- Formato `CENSA-4AM-26-K7QX`: el prefijo legible del Figma más **4 caracteres aleatorios** de un alfabeto de 31 sin caracteres ambiguos (sin `0 O 1 I L`). Se generan con `crypto.randomInt` y dan ~923 000 combinaciones por grupo. Si el código choca con otro, se reintenta.
-- Regenerar cambia el sufijo y sube `code_version`, así que todas las sesiones anteriores caen. Cambiar el grupo o la jornada **no** cambia el código, como dice el Figma.
-- El estudiante puede escribirlo en minúsculas o con espacios: se normaliza (`normalizeAccessCode`). Los guiones son obligatorios ("Incluye las letras, los números y los guiones").
-- Al canjearlo recibe una cookie `httpOnly` con un JWT HS256 (`sub` = `group_id`, `v` = `code_version`) válida 30 días.
-- `POST /v1/access` limita los intentos por IP (API-03).
+- Formato **`CENSA-4AM-K7Q`**: `CENSA` fijo, `4AM` es su grupo (CLEI IV, A, Mañana) y `K7Q` son **3 caracteres aleatorios**. El estudiante solo tiene que recordar 6 caracteres, y 3 ya los conoce.
+- El año sale del código porque ya aparece en pantalla. El identificador del grupo es **una sola letra**, para que el código mida siempre lo mismo.
+- El sufijo usa un alfabeto de 31 caracteres sin ambiguos (sin `0 O 1 I L`), generado con `crypto.randomInt`: son ~30 000 combinaciones por grupo. Si el código choca con otro, se reintenta.
+- **Se escribe como sea**: `4amk7q`, `4AM K7Q`, `censa-4am-k7q`… `normalizeAccessCode` lo convierte en `CENSA-4AM-K7Q`. En la UI, el campo muestra `CENSA-` fijo delante y el estudiante solo teclea `4AM-K7Q` (tarea WEB-02).
+- Regenerar cambia el sufijo y sube `code_version`, así que las sesiones anteriores caen. Cambiar la jornada **no** cambia el código, como dice el Figma.
+- Al canjearlo, el estudiante recibe una cookie `httpOnly` con un JWT HS256 (`sub` = `group_id`, `v` = `code_version`) válida 30 días. No tiene que volver a escribir el código en ese dispositivo.
+- **El límite de intentos es obligatorio** (API-03): con 30 000 combinaciones, sin límite se adivina en minutos. Con 10 intentos por minuto por IP hacen falta días, y el admin puede regenerar el código si se filtra.
 
 **Consecuencias.**
-- Los textos del Figma muestran `CENSA-4AM-26`. En la UI el código real es más largo, así que hay que dejar ancho para él.
-- Quien tenga el código ve las guías publicadas del grupo. Es un acceso compartido, no personal: vale para material de clase, no para contenido privado por estudiante.
-- No sabemos qué estudiante descargó qué.
+- Es un acceso compartido, no personal. Vale para material de clase, no para contenido privado por estudiante.
+- Si en algún momento se necesita más seguridad, se sube el sufijo a 4 caracteres cambiando `ACCESS_CODE_SUFFIX_LENGTH` y el check de la migración.

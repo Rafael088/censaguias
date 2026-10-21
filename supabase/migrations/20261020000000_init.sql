@@ -24,11 +24,11 @@ create table public.profiles (
 create table public.groups (
   id            uuid primary key default gen_random_uuid(),
   clei          smallint not null check (clei between 1 and 6),          -- CLEI I…VI
-  identifier    text not null check (identifier ~ '^[A-Z]{1,2}$'),       -- A, B, C…
+  identifier    text not null check (identifier ~ '^[A-Z]$'),            -- A, B, C…
   shift         public.shift not null,
   school_year   smallint not null check (school_year between 2020 and 2100),
-  -- CENSA-4AM-26-K7QX: prefijo legible + sufijo aleatorio (ADR 0004)
-  access_code   text not null unique check (access_code ~ '^CENSA-[1-6][A-Z]{1,2}[MNS]-[0-9]{2}-[A-HJKMNP-Z2-9]{4}$'),
+  -- CENSA-4AM-K7Q: grupo legible + 3 caracteres aleatorios (ADR 0004)
+  access_code   text not null unique check (access_code ~ '^CENSA-[1-6][A-Z][MNS]-[A-HJKMNP-Z2-9]{3}$'),
   -- Sube cada vez que el admin regenera el código: invalida las sesiones de estudiante anteriores.
   code_version  integer not null default 1,
   created_by    uuid references public.profiles (id) on delete set null,
