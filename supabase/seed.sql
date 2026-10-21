@@ -1,0 +1,2 @@
+-- Datos de prueba para desarrollo local (supabase db reset).
+-- El primer admin se crea a mano: ver docs/ARQUITECTURA.md → "Primer admin".

@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+/* Tokens provisionales: se reemplazan por los del Figma en la tarea WEB-01 (docs/DISENO.md). */
+@theme {
+  --color-brand: #2563eb;
+  --color-ink: #0f172a;
+  --color-muted: #64748b;
+  --color-surface: #ffffff;
+  --font-sans: system-ui, sans-serif;
+}
