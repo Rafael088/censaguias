@@ -1,0 +1,101 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [5 0 R 7 0 R 9 0 R 11 0 R] /Count 4 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 6 0 R >>
+endobj
+6 0 obj
+<< /Length 827 >>
+stream
+BT /F1 9 Tf 1 0 0 1 62 792 Td (MATEMÁTICAS · CLEI IV · A) Tj ET
+BT /F2 24 Tf 1 0 0 1 62 777 Td (Ecuaciones de primer grado) Tj ET
+0.788 0.890 0.824 rg 62 733 471 2 re f
+BT /F1 11 Tf 1 0 0 1 62 715 Td (Una ecuación es una igualdad con una incógnita. Nuestro objetivo es encontrar el valor de x.) Tj ET
+BT /F1 11 Tf 1 0 0 1 62 696 Td (Para resolverla, aplicamos la misma operación en ambos lados de la igualdad hasta despejar la incógnita.) Tj ET
+BT /F2 9 Tf 1 0 0 1 62 667 Td (EJEMPLO RESUELTO) Tj ET
+BT /F2 20 Tf 1 0 0 1 62 648 Td (2x + 6 = 14) Tj ET
+BT /F1 11 Tf 1 0 0 1 62 612 Td (1. Resta 6 a ambos lados: 2x = 8) Tj ET
+BT /F1 11 Tf 1 0 0 1 62 593 Td (2. Divide entre 2: x = 4) Tj ET
+BT /F1 11 Tf 1 0 0 1 62 574 Td (3. Comprueba: 2\(4\) + 6 = 14) Tj ET
+BT /F2 11 Tf 1 0 0 1 62 547 Td (Ahora tú: resuelve 3x + 5 = 20.) Tj ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 8 0 R >>
+endobj
+8 0 obj
+<< /Length 701 >>
+stream
+BT /F1 9 Tf 1 0 0 1 62 792 Td (TEMA · ÁLGEBRA) Tj ET
+BT /F2 20 Tf 1 0 0 1 62 777 Td (Actividades) Tj ET
+0.788 0.890 0.824 rg 62 737 471 2 re f
+BT /F1 11 Tf 1 0 0 1 62 719 Td (1. Resuelve 4x - 3 = 13 y comprueba el resultado.) Tj ET
+BT /F1 11 Tf 1 0 0 1 62 698 Td (2. Resuelve 5\(x + 2\) = 35.) Tj ET
+BT /F1 11 Tf 1 0 0 1 62 677 Td (3. ¿Qué valor de x cumple 2x + 7 = x - 1?) Tj ET
+BT /F1 11 Tf 1 0 0 1 62 656 Td (4. Formula una ecuación cuya solución sea x = -3.) Tj ET
+BT /F1 11 Tf 1 0 0 1 62 635 Td (5. Corrige el error de quien escribió: de 3x = 12 sacó x = 4 pero no comprobó.) Tj ET
+BT /F1 11 Tf 1 0 0 1 62 614 Td (6. Explica con tus palabras por qué puedes sumar lo mismo en ambos lados.) Tj ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 10 0 R >>
+endobj
+10 0 obj
+<< /Length 538 >>
+stream
+BT /F1 9 Tf 1 0 0 1 62 792 Td (TEMA · ÁLGEBRA) Tj ET
+BT /F2 20 Tf 1 0 0 1 62 777 Td (Ejercicios resueltos) Tj ET
+0.788 0.890 0.824 rg 62 737 471 2 re f
+BT /F1 11 Tf 1 0 0 1 62 719 Td (a\) x + 9 = 15   ’   x = 6) Tj ET
+BT /F1 11 Tf 1 0 0 1 62 698 Td (b\) 7x = 42   ’   x = 6) Tj ET
+BT /F1 11 Tf 1 0 0 1 62 677 Td (c\) x/3 - 2 = 5   ’   x = 21) Tj ET
+BT /F1 11 Tf 1 0 0 1 62 656 Td (d\) 2\(x - 1\) = 10   ’   x = 6) Tj ET
+BT /F1 11 Tf 1 0 0 1 62 629 Td (Recuerda comprobar siempre la solución sustituyéndola en la ecuación original.) Tj ET
+endstream
+endobj
+11 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 12 0 R >>
+endobj
+12 0 obj
+<< /Length 622 >>
+stream
+BT /F1 9 Tf 1 0 0 1 62 792 Td (TEMA · ÁLGEBRA) Tj ET
+BT /F2 20 Tf 1 0 0 1 62 777 Td (Repaso) Tj ET
+0.788 0.890 0.824 rg 62 737 471 2 re f
+BT /F1 11 Tf 1 0 0 1 62 719 Td (· El término independiente pasa al otro lado cambiando de signo.) Tj ET
+BT /F1 11 Tf 1 0 0 1 62 698 Td (· Si la incógnita está multiplicada, se divide el otro lado.) Tj ET
+BT /F1 11 Tf 1 0 0 1 62 677 Td (· Si la incógnita está dividida, se multiplica el otro lado.) Tj ET
+BT /F1 11 Tf 1 0 0 1 62 656 Td (· Comprueba siempre: escribe la sustitución y verifica la igualdad.) Tj ET
+BT /F1 9 Tf 1 0 0 1 62 625 Td (CENSA · Material de estudio · 2026) Tj ET
+endstream
+endobj
+xref
+0 13
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000134 00000 n 
+0000000231 00000 n 
+0000000333 00000 n 
+0000000475 00000 n 
+0000001352 00000 n 
+0000001494 00000 n 
+0000002245 00000 n 
+0000002388 00000 n 
+0000002977 00000 n 
+0000003121 00000 n 
+trailer
+<< /Size 13 /Root 1 0 R >>
+startxref
+3794
+%%EOF

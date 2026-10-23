@@ -1,0 +1,60 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [5 0 R 7 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 6 0 R >>
+endobj
+6 0 obj
+<< /Length 625 >>
+stream
+BT /F1 9 Tf 1 0 0 1 62 792 Td (MATEMÁTICAS · CLEI IV · A) Tj ET
+BT /F2 22 Tf 1 0 0 1 62 777 Td (Operaciones con números enteros) Tj ET
+0.788 0.890 0.824 rg 62 735 471 2 re f
+BT /F1 11 Tf 1 0 0 1 62 717 Td (Repasa las operaciones y resuelve ejercicios paso a paso.) Tj ET
+BT /F2 9 Tf 1 0 0 1 62 692 Td (REGLA DE LOS SIGNOS) Tj ET
+BT /F1 11 Tf 1 0 0 1 62 673 Td (· Signos iguales: el resultado conserva el signo.) Tj ET
+BT /F1 11 Tf 1 0 0 1 62 654 Td (· Signos distintos: el resultado toma el signo del mayor en valor absoluto.) Tj ET
+BT /F1 11 Tf 1 0 0 1 62 635 Td (EJEMPLO: -7 + 4 = -3     5 - 9 = -4     -6 · -2 = 12) Tj ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 8 0 R >>
+endobj
+8 0 obj
+<< /Length 486 >>
+stream
+BT /F1 9 Tf 1 0 0 1 62 792 Td (TEMA · ARITMÉTICA) Tj ET
+BT /F2 20 Tf 1 0 0 1 62 777 Td (Actividades) Tj ET
+0.788 0.890 0.824 rg 62 737 471 2 re f
+BT /F1 11 Tf 1 0 0 1 62 719 Td (1. Calcula: -12 + 5 - 3 + 8.) Tj ET
+BT /F1 11 Tf 1 0 0 1 62 698 Td (2. Calcula: \(-4\) · 6 : \(-8\).) Tj ET
+BT /F1 11 Tf 1 0 0 1 62 677 Td (3. Ordena de menor a mayor: 2, -5, 0, -1, 4.) Tj ET
+BT /F1 11 Tf 1 0 0 1 62 656 Td (4. Un ascensor parte de la planta -2 y baja 3 plantas. ¿En qué planta queda?) Tj ET
+endstream
+endobj
+xref
+0 9
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000121 00000 n 
+0000000218 00000 n 
+0000000320 00000 n 
+0000000462 00000 n 
+0000001137 00000 n 
+0000001279 00000 n 
+trailer
+<< /Size 9 /Root 1 0 R >>
+startxref
+1815
+%%EOF
