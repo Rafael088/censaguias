@@ -22,4 +22,22 @@ export function setSupabaseForTests(client: SupabaseClient | undefined): void {
   if (client === undefined) admin = undefined;
 }
 
+let anonTests: SupabaseClient | undefined;
+
+/**
+ * Cliente anon para el login: uno por request, sin sesión persistida, para que
+ * dos usuarios que entran a la vez no compartan la sesión (como estaba antes).
+ */
+export function anonClient(): SupabaseClient {
+  if (anonTests) return anonTests;
+  return createClient(env().SUPABASE_URL, env().SUPABASE_ANON_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
+
+/** Solo para tests (lib/testing.ts). */
+export function setSupabaseAnonForTests(client: SupabaseClient | undefined): void {
+  anonTests = client;
+}
+
 export const GUIDES_BUCKET = "guides";

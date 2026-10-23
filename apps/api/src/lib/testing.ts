@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { setSupabaseForTests } from "./supabase.js";
+import { setSupabaseAnonForTests, setSupabaseForTests } from "./supabase.js";
 import { signStudentSession, STUDENT_COOKIE } from "./student-session.js";
 
 // Variables por defecto ANTES de que env() las lea (se cachean en el primer uso).
@@ -17,6 +17,8 @@ export type Seed = {
   groups?: Row[];
   subjects?: Row[];
   guides?: Row[];
+  /** Credenciales de login simuladas: correo → contraseña (para auth.signInWithPassword). */
+  logins?: Record<string, string>;
 };
 
 type QueryResult = { data: unknown; error: { message: string } | null };
@@ -108,10 +110,23 @@ export function fakeSupabase(seed: Seed = {}): FakeSupabase {
           userId ? { data: { user: { id: userId } }, error: null } : { data: { user: null }, error: { message: "token inválido" } },
         );
       },
+      // Igual que supabase-js: si el correo o la contraseña no cuadran, error y sesión vacía.
+      signInWithPassword({ email, password }: { email: string; password: string }): Promise<QueryResult> {
+        if (seed.logins?.[email] !== password) {
+          return Promise.resolve({ data: { session: null }, error: { message: "Invalid login credentials" } });
+        }
+        const token = `token-falso-${++tokenCount}`;
+        tokens.set(token, email);
+        return Promise.resolve({
+          data: { session: { access_token: token, refresh_token: `refresh-${token}` } },
+          error: null,
+        });
+      },
     },
   } as unknown as SupabaseClient;
 
   setSupabaseForTests(client);
+  setSupabaseAnonForTests(client);
 
   return {
     client,
@@ -134,6 +149,7 @@ export function fakeSupabase(seed: Seed = {}): FakeSupabase {
     },
     restore() {
       setSupabaseForTests(undefined);
+      setSupabaseAnonForTests(undefined);
     },
   };
 }

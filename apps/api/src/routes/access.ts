@@ -3,12 +3,15 @@ import { setCookie, deleteCookie } from "hono/cookie";
 import { zValidator } from "@hono/zod-validator";
 import { accessCodeInput, groupLabel, SHIFT_LABEL, type Shift } from "@censaguias/shared";
 import { supabaseAdmin } from "../lib/supabase.js";
+import { clientIp, rateLimit } from "../lib/rate-limit.js";
 import { STUDENT_COOKIE, STUDENT_SESSION_DAYS, signStudentSession } from "../lib/student-session.js";
 
-// TODO(v0.1.0 · API-03): limitar intentos por IP antes de salir a producción.
 export const accessRoutes = new Hono()
   .post(
     "/",
+    // 10 intentos por minuto y IP: el código son 6 caracteres y no hay cuenta que bloquear,
+    // así que el freno contra la fuerza bruta lo pone esta ventana (ADR 0004).
+    rateLimit((c) => `access:${clientIp(c)}`),
     zValidator("json", accessCodeInput, (result, c) => {
       if (!result.success) return c.json({ error: "Código no válido" }, 400);
     }),
