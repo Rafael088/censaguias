@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/button";
+import { Field } from "@/components/field";
 import { api } from "@/lib/api";
 
 export function AccessCodeForm() {
@@ -22,22 +24,20 @@ export function AccessCodeForm() {
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-3">
-      <label htmlFor="code" className="text-label font-semibold">Código de tu grupo</label>
-      <input
-        id="code"
+      <Field
+        label="Código de tu grupo"
         value={code}
         onChange={(e) => setCode(e.target.value)}
         placeholder="CENSA-4AM-K7Q"
-        aria-describedby="code-hint"
+        hint="Incluye las letras, los números y los guiones."
+        error={error}
         autoComplete="off"
         autoCapitalize="characters"
-        className="min-h-[46px] rounded-control border border-line px-3 uppercase focus:border-2 focus:border-primary"
+        className="uppercase"
       />
-      <p id="code-hint" className="text-meta">Incluye las letras, los números y los guiones.</p>
-      {error && <p role="alert" className="rounded-card bg-tint p-3 text-label">{error}</p>}
-      <button disabled={pending} className="min-h-[46px] rounded-control bg-primary px-4 font-semibold text-white disabled:bg-tint disabled:text-primary">
+      <Button type="submit" disabled={pending}>
         {pending ? "Ingresando…" : error ? "Intentar de nuevo" : "Ingresar a mi grupo"}
-      </button>
+      </Button>
     </form>
   );
 }

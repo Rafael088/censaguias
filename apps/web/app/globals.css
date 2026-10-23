@@ -7,7 +7,8 @@
   --color-ink: #064a2b;       /* Texto */
   --color-tint: #e8f5ed;      /* Tinte: avisos, chips, fondos de app, botón deshabilitado */
   --color-surface: #ffffff;   /* Superficie: tarjetas y paneles */
-  --color-line: #cfe3d6;      /* Bordes de tarjetas y campos (derivado, ajustar si el Figma lo fija) */
+  --color-line: #c9e3d2;      /* Trazo: bordes de tarjetas, campos y botones (exacto del Figma) */
+  --color-muted: #397452;     /* Texto secundario: metadatos, ayuda y descripciones */
 
   --font-sans: var(--font-inter), system-ui, sans-serif;
 
