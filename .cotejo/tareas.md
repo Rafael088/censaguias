@@ -1,1 +1,21 @@
 # Tareas
+- [x] INF-01: Crear el proyecto de Supabase, aplicar la migracion, desactivar el registro publico, crear el primer admin y compartir las variables por el gestor de secretos del equipo (no el chat). Depende de: nada. Tam. S #facil #v0.1.0 — 2026-10-27 ^cotejo-knmgff
+- [ ] INF-02: Despliegue de apps/web y apps/api en Vercel, variables por entorno, API_URL del web hacia la API, previews en cada PR. Depende de: INF-01. Tam. M #medio #v0.1.0 ^cotejo-76g9av
+- [x] API-01: GET /v1/me. Helper de tests: app con Supabase simulado y tokens falsos de admin, profesor y estudiante. Depende de: INF-01. Tam. M #medio #v0.1.0 #agente/mimo — 2026-10-27 ^cotejo-0pbtp0
+- [ ] API-02: Grupos: GET y POST /v1/groups, PATCH /v1/groups/:id (nombre, archivar), POST /v1/groups/:id/code (regenerar, sube code_version); reintentar si el codigo choca. Depende de: API-01. Tam. M #medio #v0.1.0 ^cotejo-tz2i3y
+- [ ] API-03: Limite de intentos en POST /v1/access (10/min por IP) con respuesta 429. Depende de: nada. Tam. S #facil #v0.1.0 ^cotejo-cgsh4y
+- [ ] API-04: Asignaturas: GET y POST /v1/groups/:id/subjects, PATCH y DELETE /v1/subjects/:id, PUT /v1/subjects/:id/teachers. Depende de: API-02. Tam. M #medio #v0.1.0 ^cotejo-e1nipo
+- [ ] API-05: Subir guia: POST /v1/subjects/:id/guides (multipart, PDF hasta 20 MB, firma %PDF), limpieza si falla. Probar el limite real de Vercel y decidir si cambiar a subida firmada (ADR 0005). Depende de: API-04. Tam. L #dificil #v0.1.0 ^cotejo-3ovoqt
+- [ ] API-06: Guias: GET /v1/subjects/:id/guides, PATCH y DELETE /v1/guides/:id (borra tambien el archivo). Depende de: API-05. Tam. S #facil #v0.1.0 ^cotejo-y8g4ou
+- [ ] API-07: Estudiante: GET /v1/student/group, GET /v1/student/subjects/:id/guides, GET /v1/guides/:id/download (URL firmada de 60 s, sirve tambien a staff). Depende de: API-05. Tam. M #medio #v0.1.0 ^cotejo-udgfop
+- [ ] API-08: Profesores: GET /v1/teachers, POST /v1/teachers (invitacion por correo), GET /v1/teacher/subjects. Depende de: API-01. Tam. M #medio #v0.1.0 ^cotejo-xaiefw
+- [ ] API-09: Tests de permisos: profesor no toca asignaturas ajenas, estudiante no ve otro grupo, codigo regenerado invalida la sesion, grupo archivado no entra. Depende de: API-04, API-06, API-07. Tam. M #medio #v0.1.0 ^cotejo-k1ac4y
+- [x] WEB-01: Leer el Figma: tokens en @theme, componentes base (boton, input, tarjeta, lista, dialogo, toast, vacio) y completar docs/DISENO.md. Bloquea el resto de la UI. Depende de: nada. Tam. M #medio #v0.1.0 #agente/mimo — 2026-10-22 ^cotejo-2c655c
+- [x] WEB-02: Estudiante: ingreso de codigo con el diseno final, /grupo (asignaturas), /grupo/[subjectId] (guias, abrir y descargar), salir. Depende de: WEB-01, API-07. Tam. M #medio #v0.1.0 #agente/mimo — 2026-10-22 ^cotejo-z1k4by
+- [x] WEB-03: Staff: /login con Supabase Auth, recuperar contrasena, aceptar invitacion, guard por rol, layout de admin y de profesor; enviar el token como Bearer en api. Depende de: WEB-01, API-01. Tam. M #medio #v0.1.0 #agente/mimo — 2026-10-27 ^cotejo-ov17cj
+- [ ] WEB-04: Admin - grupos: lista, crear (mostrar el codigo con boton copiar), archivar. Depende de: WEB-03, API-02. Tam. M #medio #v0.1.0 ^cotejo-pya62c
+- [ ] WEB-05: Admin - detalle de grupo: codigo (copiar, regenerar con confirmacion), asignaturas (crear, editar, borrar), asignar profesores. Depende de: WEB-04, API-04. Tam. L #dificil #v0.1.0 ^cotejo-mfmmtp
+- [ ] WEB-06: Admin - profesores: lista e invitar. Depende de: WEB-03, API-08. Tam. S #facil #v0.1.0 ^cotejo-99i8ac
+- [ ] WEB-07: Profesor: mis asignaturas, guias de una asignatura, subir PDF con progreso y validacion de tamano y tipo, editar titulo, borrar con confirmacion. Depende de: WEB-03, API-06, API-08. Tam. L #dificil #v0.1.0 ^cotejo-wqr0xm
+- [ ] WEB-08: Pulido: estados de carga, vacio y error en todas las pantallas; revision movil y accesibilidad (teclado, contraste, labels). Depende de: WEB-02 a WEB-07. Tam. M #medio #v0.1.0 ^cotejo-hmvuj7
+- [ ] REL-01: Prueba de aceptacion en produccion, corregir lo que salga, etiquetar v0.1.0 y escribir las notas de la version. Depende de: todo. Tam. S #facil #v0.1.0 ^cotejo-wsgndg

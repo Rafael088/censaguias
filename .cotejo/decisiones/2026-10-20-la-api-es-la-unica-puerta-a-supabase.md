@@ -2,8 +2,9 @@
 id: dec-zo7q
 fecha: 2026-10-20
 temas: [arquitectura, datos, seguridad]
-estado: propuesta
+estado: aceptada
 autor: agente
+aceptada_el: 2026-10-22
 ---
 # La API es la única puerta a Supabase
 

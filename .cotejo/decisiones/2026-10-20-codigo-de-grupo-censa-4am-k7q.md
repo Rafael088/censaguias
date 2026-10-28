@@ -2,8 +2,9 @@
 id: dec-lnxp
 fecha: 2026-10-20
 temas: [seguridad, producto]
-estado: propuesta
+estado: aceptada
 autor: agente
+aceptada_el: 2026-10-22
 ---
 # Código de grupo CENSA-4AM-K7Q
 

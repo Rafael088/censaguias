@@ -2,8 +2,9 @@
 id: dec-6ek6
 fecha: 2026-10-20
 temas: [auth]
-estado: propuesta
+estado: aceptada
 autor: agente
+aceptada_el: 2026-10-22
 ---
 # Staff con usuario institucional
 
