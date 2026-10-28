@@ -10,7 +10,8 @@ Cada tarea es un issue de GitHub con el mismo ID en el título, la etiqueta de s
 
 - Monorepo (`apps/web`, `apps/api`, `packages/shared`), docs, ADRs e imágenes del Figma.
 - Migración inicial: grupos CLEI, materias con docente, guías con estado, RLS y bucket `guides` de 10 MB.
-- API: `/health`, `POST/DELETE /v1/access` (canje del código y cookie), `POST /v1/auth/login` (usuario institucional), los middlewares `requireStaff` y `requireStudent`, y el generador de códigos con tests.
+- API: `/health`, `GET /v1/me` (perfil, rol y materias del profesor), `POST/DELETE /v1/access` (canje del código y cookie), `POST /v1/auth/login` (usuario institucional), los middlewares `requireStaff` y `requireStudent`, y el generador de códigos con tests.
+- Tests de API: helper con Supabase simulado en memoria y sesiones falsas de admin, profesor y estudiante (`apps/api/src/test/`).
 - Web: tokens del sistema de diseño (colores, Inter, escala, radios, foco), un formulario de código provisional y el cliente tipado `api`.
 - CI: typecheck y tests en cada PR.
 

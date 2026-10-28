@@ -56,7 +56,7 @@ Contrato del MVP. ✅ = ya existe en el código.
 | `POST /v1/access` ✅ | público | Canjea el código → cookie + `{ group }` | acceso-estudiante |
 | `DELETE /v1/access` ✅ | estudiante | Salir / cambiar código | estudiante-06 |
 | `POST /v1/auth/login` ✅ | público | Usuario + contraseña → tokens de Supabase | acceso-staff |
-| `GET /v1/me` | staff | Perfil, rol y, si es profesor, sus materias | cabecera |
+| `GET /v1/me` ✅ | staff | Perfil, rol y, si es profesor, sus materias | cabecera |
 | `GET /v1/student/group` | estudiante | Grupo, materias (docente, nº de guías publicadas) y últimas guías | estudiante-01, 05 |
 | `GET /v1/student/subjects/:id/guides?topic=` | estudiante | Guías publicadas de una materia de su grupo y sus temas | estudiante-02, 04 |
 | `GET /v1/student/guides/:id` | estudiante | Detalle de una guía publicada | estudiante-03 |
