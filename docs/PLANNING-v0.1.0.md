@@ -12,6 +12,7 @@ Cada tarea es un issue de GitHub con el mismo ID en el título, la etiqueta de s
 - Migración inicial: grupos CLEI, materias con docente, guías con estado, RLS y bucket `guides` de 10 MB.
 - API: `/health`, `GET /v1/me` (perfil, rol y materias del profesor), `POST/DELETE /v1/access` (canje del código y cookie), `POST /v1/auth/login` (usuario institucional), los middlewares `requireStaff` y `requireStudent`, y el generador de códigos con tests.
 - Tests de API: helper con Supabase simulado en memoria y sesiones falsas de admin, profesor y estudiante (`apps/api/src/test/`).
+- Web del staff (WEB-03): pantalla `/ingresar` con pestañas y estado de error, sesión guardada con Supabase Auth (`setSession` y refresco), el `Bearer` en el cliente tipado `api`, guard por rol con `GET /v1/me` y los layouts de admin y profesor con barra lateral, cabecera y cerrar sesión.
 - Web: tokens del sistema de diseño (colores, Inter, escala, radios, foco), un formulario de código provisional y el cliente tipado `api`.
 - CI: typecheck y tests en cada PR.
 
