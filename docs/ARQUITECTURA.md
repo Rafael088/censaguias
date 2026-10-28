@@ -56,16 +56,16 @@ Contrato del MVP. ✅ = ya existe en el código.
 | `POST /v1/access` ✅ | público | Canjea el código → cookie + `{ group }` | acceso-estudiante |
 | `DELETE /v1/access` ✅ | estudiante | Salir / cambiar código | estudiante-06 |
 | `POST /v1/auth/login` ✅ | público | Usuario + contraseña → tokens de Supabase | acceso-staff |
-| `GET /v1/me` | staff | Perfil, rol y, si es profesor, sus materias | cabecera |
+| `GET /v1/me` ✅ | staff | Perfil, rol y, si es profesor, sus materias | cabecera |
 | `GET /v1/student/group` | estudiante | Grupo, materias (docente, nº de guías publicadas) y últimas guías | estudiante-01, 05 |
 | `GET /v1/student/subjects/:id/guides?topic=` | estudiante | Guías publicadas de una materia de su grupo y sus temas | estudiante-02, 04 |
 | `GET /v1/student/guides/:id` | estudiante | Detalle de una guía publicada | estudiante-03 |
 | `GET /v1/guides/:id/file?download=1` | estudiante o staff con acceso | URL firmada (60 s) para abrir o descargar | estudiante-03, profesor-05 |
-| `GET /v1/admin/summary` | admin | Métricas, distribución por jornada, grupos recientes | admin-01 |
-| `GET /v1/groups?q=&shift=&page=` | admin | Lista con búsqueda y filtro | admin-02 |
-| `POST /v1/groups` | admin | Crear grupo (genera el código) | admin-03 |
-| `GET/PATCH/DELETE /v1/groups/:id` | admin | Detalle, editar, eliminar (con sus materias, guías y PDFs) | admin-04, 05, 10 |
-| `POST /v1/groups/:id/code` | admin | Regenerar el código (sube `code_version`) | admin-04 |
+| `GET /v1/admin/summary` ✅ | admin | Métricas, distribución por jornada, grupos recientes | admin-01 |
+| `GET /v1/groups?q=&shift=&page=` ✅ | admin | Lista con búsqueda y filtro | admin-02 |
+| `POST /v1/groups` ✅ | admin | Crear grupo (genera el código) | admin-03 |
+| `GET/PATCH/DELETE /v1/groups/:id` ✅ | admin | Detalle, editar, eliminar (con sus materias, guías y PDFs) | admin-04, 05, 10 |
+| `POST /v1/groups/:id/code` ✅ | admin | Regenerar el código (sube `code_version`) | admin-04 |
 | `POST /v1/groups/:id/subjects` | admin | Crear materia con su docente | admin-06 |
 | `PATCH/DELETE /v1/subjects/:id` | admin | Editar materia o cambiar de docente; eliminar | admin-07 |
 | `GET /v1/teachers?q=&page=` | admin | Lista con materias y grupos asignados | admin-08 |
