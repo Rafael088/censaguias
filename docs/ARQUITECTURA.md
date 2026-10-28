@@ -39,7 +39,7 @@ groups 1 ──────< subjects 1 ──────< guides (draft | publ
 
 | Tabla | Campos clave | Notas |
 |---|---|---|
-| `profiles` | `username`, `full_name`, `role`, `active` | `id` = `auth.users.id`. La crea la API al registrar al profesor. |
+| `profiles` | `username`, `full_name`, `email`, `role`, `active` | `id` = `auth.users.id`. La crea la API al registrar al profesor. `email` es copia del correo sintético de Auth; manda Auth, no esta columna. |
 | `groups` | `clei` (1–6), `identifier` (una letra), `shift` (`morning`/`night`/`saturday`), `school_year`, `access_code`, `code_version` | Único por (clei, identifier, shift, school_year). Se muestra como "CLEI IV · A". |
 | `subjects` | `group_id`, `name`, `description`, `teacher_id` | Nombre único dentro del grupo. Si se borra el profesor, `teacher_id` queda en null y las guías se conservan. |
 | `guides` | `topic`, `title`, `description`, `status`, `published_at`, `file_name`, `size_bytes`, `page_count` | Los estudiantes solo ven `published`. El tema es texto libre; el front sugiere los temas que ya existen en la materia. |
