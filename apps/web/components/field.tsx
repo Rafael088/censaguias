@@ -8,6 +8,8 @@ export interface FieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 
   hint?: ReactNode;
   /** Mensaje de error; suelta el campo con borde de 2 px, el «!» dentro y la caja de aviso. */
   error?: string | null;
+  /** Borde de 2 px e icono «!» dentro del campo, sin mensaje (Figma «acceso-staff-error»). */
+  invalid?: boolean;
   /** Primera línea en negrita de esa caja (Figma «No pudimos encontrar tu grupo»). */
   errorTitle?: ReactNode;
 }
@@ -16,11 +18,12 @@ export interface FieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 
  * Campo con etiqueta, ayuda y error (Figma «CENSA / Campo»).
  * El error lleva icono «!», borde de 2 px y texto: nunca se comunica solo con color.
  */
-export function Field({ label, hint, error, errorTitle, className = "", ...rest }: FieldProps) {
+export function Field({ label, hint, error, invalid, errorTitle, className = "", ...rest }: FieldProps) {
   const id = useId();
   const hintId = hint ? `${id}-hint` : undefined;
   const errorId = error ? `${id}-error` : undefined;
   const describedBy = [hintId, errorId].filter(Boolean).join(" ") || undefined;
+  const marked = Boolean(error) || invalid;
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -31,11 +34,13 @@ export function Field({ label, hint, error, errorTitle, className = "", ...rest 
         <input
           id={id}
           aria-describedby={describedBy}
-          aria-invalid={error ? true : undefined}
-          className={`min-h-[46px] w-full rounded-control border bg-surface px-3 text-body text-ink outline-none placeholder:text-muted focus:border-2 focus:border-primary ${error ? "border-2 border-primary pr-11" : "border-line"} ${className}`}
+          aria-invalid={marked ? true : undefined}
+          className={`min-h-[46px] w-full rounded-control border bg-surface px-3 text-body text-ink outline-none placeholder:text-muted focus:border-2 focus:border-primary ${marked ? "border-2 border-primary pr-11" : "border-line"} ${className}`}
           {...rest}
         />
-        {error && <CircleAlert size={20} className="absolute right-3 top-1/2 -translate-y-1/2 text-primary" aria-hidden />}
+        {marked && (
+          <CircleAlert size={20} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-primary" aria-hidden />
+        )}
       </div>
       {hint && (
         <p id={hintId} className="text-meta text-muted">
