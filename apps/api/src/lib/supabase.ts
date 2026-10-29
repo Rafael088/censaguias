@@ -3,7 +3,6 @@ import { env } from "../env.js";
 
 let admin: SupabaseClient | undefined;
 let tests: SupabaseClient | undefined;
-let override: SupabaseClient | undefined;
 
 /**
  * Cliente con service_role: salta RLS. Solo vive en la API.
@@ -11,14 +10,12 @@ let override: SupabaseClient | undefined;
  */
 export function supabaseAdmin(): SupabaseClient {
   if (tests) return tests;
-
-  if (override) return override;
-
   admin ??= createClient(env().SUPABASE_URL, env().SUPABASE_SERVICE_ROLE_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
   return admin;
 }
+
 /** Solo para tests (lib/testing.ts): sustituye el cliente por el simulado en memoria. */
 export function setSupabaseForTests(client: SupabaseClient | undefined): void {
   tests = client;
@@ -41,9 +38,6 @@ export function anonClient(): SupabaseClient {
 /** Solo para tests (lib/testing.ts). */
 export function setSupabaseAnonForTests(client: SupabaseClient | undefined): void {
   anonTests = client;
-/** Solo para tests: inyecta un Supabase simulado. Pasa `undefined` para volver al real. */
-export function setSupabaseForTests(client?: SupabaseClient): void {
-  override = client;
 }
 
 export const GUIDES_BUCKET = "guides";
