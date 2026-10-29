@@ -1,40 +1,46 @@
 import { Hono } from "hono";
-import { HTTPException } from "hono/http-exception";
-import type { Role } from "@censaguias/shared";
-import { supabaseAdmin } from "../lib/supabase.js";
+import { groupLabel } from "@censaguias/shared";
 import { requireStaff, type AppVars } from "../middleware/auth.js";
+import { supabaseAdmin } from "../lib/supabase.js";
 
-// GET /v1/me: lo que la cabecera y la barra lateral pintan del staff que entró.
-// El rol sale de profiles (middleware), nunca del token ni del body (regla 7 de AGENTS.md).
+type SubjectRow = { id: string; name: string; group_id: string };
+type GroupRow = { id: string; clei: number; identifier: string };
+
+/**
+ * Quién soy: perfil, rol y, si es profesor, sus materias con el grupo al que pertenecen.
+ * Es lo que el front necesita para el guard por rol y para la cabecera (ARQUITECTURA.md).
+ */
 export const meRoutes = new Hono<{ Variables: AppVars }>()
   .use(requireStaff())
   .get("/", async (c) => {
-    const { id, role } = c.get("staff");
+    const { id, username, fullName, role } = c.get("staff");
+    const base = { id, username, fullName, role };
+    if (role !== "teacher") return c.json({ ...base, subjects: [] });
+
     const db = supabaseAdmin();
+    // El orden lo pone la API: el front solo pinta.
+    const { data } = await db
+      .from("subjects")
+      .select("id, name, group_id")
+      .eq("teacher_id", id)
+      .order("name");
+    const subjects = (data ?? []) as SubjectRow[];
 
-    const { data: profile, error } = await db
-      .from("profiles")
-      .select("username, full_name")
-      .eq("id", id)
-      .single();
-    if (error || !profile) throw new HTTPException(401, { message: "Sesión inválida" });
+    const groupIds = [...new Set(subjects.map((subject) => subject.group_id))];
+    if (groupIds.length === 0) return c.json({ ...base, subjects: [] });
 
-    // El profesor necesita sus materias para navegar; el admin no tiene asignadas.
-    // Aun sin .single(), supabase-js responde { data, error } (no un array).
-    const { data: subjectsData } =
-      role === "teacher"
-        ? await db.from("subjects").select("id, name, group_id").eq("teacher_id", id)
-        : { data: [] };
+    const { data: groups } = await db.from("groups").select("id, clei, identifier").in("id", groupIds);
+    const byId = new Map(((groups ?? []) as GroupRow[]).map((group) => [group.id, group]));
 
     return c.json({
-      id,
-      username: profile.username as string,
-      fullName: profile.full_name as string,
-      role: role as Role,
-      subjects: (subjectsData as { id: string; name: string; group_id: string }[] | null ?? []).map((s) => ({
-        id: s.id,
-        name: s.name,
-        groupId: s.group_id,
-      })),
+      ...base,
+      subjects: subjects.map((subject) => {
+        const group = byId.get(subject.group_id);
+        return {
+          id: subject.id,
+          name: subject.name,
+          group: group ? { id: group.id, label: groupLabel(group) } : null,
+        };
+      }),
     });
   });

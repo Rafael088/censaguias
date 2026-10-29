@@ -22,11 +22,15 @@ export const app = new Hono()
   .route("/v1/admin", adminRoutes);
 // Siguientes rutas del MVP: ver la tabla de docs/ARQUITECTURA.md
 
-app.onError((err, c) => {
-  if (err instanceof HTTPException) return c.json({ error: err.message }, err.status);
-  console.error(err);
-  return c.json({ error: "Error interno" }, 500);
-});
+  app.onError((err, c) => {
+    if (err instanceof HTTPException) return c.json({ error: err.message }, err.status);
+    console.error(err);
+    return c.json({ error: "Error interno" }, 500);
+  });
+  return app;
+}
+
+export const app = createApp();
 
 /** Tipo que consume el front con `hc<AppType>()` (ADR 0002). */
 export type AppType = typeof app;
