@@ -3,8 +3,6 @@ import { groupLabel } from "@censaguias/shared";
 import { requireStaff, type AppVars } from "../middleware/auth.js";
 import { supabaseAdmin } from "../lib/supabase.js";
 
-// El cliente no tiene tipos generados de la base, así que las filas se anotan aquí (regla 5:
-// no duplicar en el front — el contrato sale de AppType, esto es solo para leer dentro de la API).
 type SubjectRow = { id: string; name: string; group_id: string };
 type GroupRow = { id: string; clei: number; identifier: string };
 
