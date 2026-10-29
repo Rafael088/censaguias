@@ -20,17 +20,18 @@ export const meRoutes = new Hono<{ Variables: AppVars }>()
     if (error || !profile) throw new HTTPException(401, { message: "Sesión inválida" });
 
     // El profesor necesita sus materias para navegar; el admin no tiene asignadas.
-    const subjects =
+    // Aun sin .single(), supabase-js responde { data, error } (no un array).
+    const { data: subjectsData } =
       role === "teacher"
         ? await db.from("subjects").select("id, name, group_id").eq("teacher_id", id)
-        : [];
+        : { data: [] };
 
     return c.json({
       id,
       username: profile.username as string,
       fullName: profile.full_name as string,
       role: role as Role,
-      subjects: (subjects as { id: string; name: string; group_id: string }[]).map((s) => ({
+      subjects: (subjectsData as { id: string; name: string; group_id: string }[] | null ?? []).map((s) => ({
         id: s.id,
         name: s.name,
         groupId: s.group_id,

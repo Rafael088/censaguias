@@ -3,7 +3,9 @@ import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { HTTPException } from "hono/http-exception";
 import { accessRoutes } from "./routes/access.js";
+import { adminRoutes } from "./routes/admin.js";
 import { authRoutes } from "./routes/auth.js";
+import { groupRoutes } from "./routes/groups.js";
 import { meRoutes } from "./routes/me.js";
 
 const webOrigin = process.env.WEB_ORIGIN ?? "http://localhost:3000";
@@ -15,7 +17,9 @@ export const app = new Hono()
   .get("/health", (c) => c.json({ ok: true }))
   .route("/v1/access", accessRoutes)
   .route("/v1/auth", authRoutes)
-  .route("/v1/me", meRoutes);
+  .route("/v1/me", meRoutes)
+  .route("/v1/groups", groupRoutes)
+  .route("/v1/admin", adminRoutes);
 // Siguientes rutas del MVP: ver la tabla de docs/ARQUITECTURA.md
 
 app.onError((err, c) => {

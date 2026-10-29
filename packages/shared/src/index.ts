@@ -61,6 +61,20 @@ export const createGroupInput = z.object({
   schoolYear: z.number().int().min(2020).max(2100),
 });
 
+/** PATCH /v1/groups/:id: cualquiera de los campos de createGroupInput, o varios. */
+export const updateGroupInput = createGroupInput.partial();
+
+/** La lista de admin-02 cabe en una página; el total se devuelve siempre. */
+export const GROUPS_PAGE_SIZE = 12;
+
+/** GET /v1/groups: q busca por etiqueta/código, shift filtra la jornada, page/pageSize paginan. */
+export const groupListQuery = z.object({
+  q: z.string().trim().max(60).optional(),
+  shift: shiftSchema.optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(50).default(GROUPS_PAGE_SIZE),
+});
+
 export const createSubjectInput = z.object({
   name: z.string().trim().min(2).max(80),
   description: z.string().trim().max(300).optional(),
