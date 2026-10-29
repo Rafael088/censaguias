@@ -5,7 +5,7 @@ import type { Role } from "@censaguias/shared";
 import { supabaseAdmin } from "../lib/supabase.js";
 import { STUDENT_COOKIE, verifyStudentSession, type StudentSession } from "../lib/student-session.js";
 
-export type Staff = { id: string; role: Role };
+export type Staff = { id: string; username: string; fullName: string; role: Role };
 export type AppVars = { staff: Staff; student: StudentSession };
 
 /** Admin o profesor: Bearer con el access_token de Supabase Auth. */
@@ -18,11 +18,16 @@ export const requireStaff = (...roles: Role[]) =>
     const { data: user, error } = await db.auth.getUser(token);
     if (error || !user.user) throw new HTTPException(401, { message: "Sesión inválida" });
 
-    const { data: profile } = await db.from("profiles").select("role, active").eq("id", user.user.id).single();
+    // username y full_name viajan en el mismo perfil para que /v1/me no tenga que volver a leerlo.
+    const { data: profile } = await db
+      .from("profiles")
+      .select("username, full_name, role, active")
+      .eq("id", user.user.id)
+      .single();
     if (!profile || !profile.active || (roles.length > 0 && !roles.includes(profile.role))) {
       throw new HTTPException(403, { message: "Sin permiso" });
     }
-    c.set("staff", { id: user.user.id, role: profile.role });
+    c.set("staff", { id: user.user.id, username: profile.username, fullName: profile.full_name, role: profile.role });
     await next();
   });
 

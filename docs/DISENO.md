@@ -13,6 +13,8 @@ Ver [`00-fundamentos-1.png`](diseno/00-fundamentos-1.png) y [`00-fundamentos-2.p
 | Texto | `#064A2B` | `text-ink` |
 | Tinte | `#E8F5ED` | `bg-tint` |
 | Superficie | `#FFFFFF` | `bg-surface` |
+| Texto secundario | `#397452` | `text-muted` |
+| Trazo | `#C9E3D2` | `border-line` |
 | Tipografía | Inter | `font-sans` (cargada con `next/font`) |
 | Escala | 12 · 13 · 14 · 16 · 20 · 24 · 32 · 40 px | `text-meta` 13 · `text-label` 14/600 · `text-body` 16/400 (1,45) · `text-section` 24/600 |
 | Espaciado | retícula de 8 px (8 · 16 · 24 · 32 · 48) | `p-2 p-4 p-6 p-8 p-12` |
@@ -30,6 +32,30 @@ Reglas del sistema:
 ## Componentes que se repiten (crear en `apps/web/components/`)
 
 Botón (4 variantes) · Campo con etiqueta, ayuda y error · Selector · Buscador · Filtro por pestañas (Todas / Mañana / Noche / Sabatina; Todos los temas / Álgebra…) · Chip de estado (✓ Publicada · Borrador) · Tarjeta de materia (icono, nombre, descripción, docente, nº de guías y flecha) · Tarjeta de guía (tema, título, descripción, PDF · tamaño · fecha y acciones) · Tabla con acciones de texto (Ver · Editar · Eliminar) · Aviso informativo/éxito (fondo tinte, icono, título y texto) · Diálogo de confirmación ("Antes de continuar…") · Estado vacío (icono en círculo, título, texto y botón) · Cabecera de grupo (CLEI IV · A, jornada · año y chip con el código) · Barra lateral por rol · Navegación inferior en móvil · Zona para arrastrar el PDF · Vista previa del PDF (primera página).
+
+## Componentes base (WEB-01)
+
+Todos los de la lista anterior —salvo la zona de PDF y la vista previa, que usa WEB-02— ya existen en [`apps/web/components/`](../apps/web/components/) y se ven todos juntos en la página **`/dev/componentes`** (`npm run dev:web`):
+
+| Componente | Archivo | Equivalente del Figma |
+|---|---|---|
+| `Button` | `button.tsx` | Botón (primario · secundario · texto · deshabilitado) |
+| `Field` | `field.tsx` | Campo con etiqueta, ayuda y error |
+| `Select` | `select.tsx` | Selector (Jornada) |
+| `SearchInput` | `search-input.tsx` | Buscador |
+| `FilterTabs` | `filter-tabs.tsx` | Filtro por pestañas (Todas / Publicada / Borrador · Mañana / Noche / Sabatina) |
+| `StatusChip` | `status-chip.tsx` | Chip de estado (✓ Publicada · Borrador) |
+| `SubjectCard` | `subject-card.tsx` | Tarjeta de materia |
+| `GuideCard` | `guide-card.tsx` | Tarjeta de guía |
+| `DataTable`, `TableRow`, `TableCell`, `TableActions` | `data-table.tsx` | Tabla con acciones de texto (Ver · Editar · Eliminar) |
+| `Notice` | `notice.tsx` | Aviso informativo / éxito / error |
+| `Dialog` | `dialog.tsx` | Diálogo de confirmación («Antes de continuar…») |
+| `EmptyState` | `empty-state.tsx` | Estado vacío |
+| `GroupHeader` | `group-header.tsx` | Cabecera de grupo (CLEI IV · A, jornada · año y chip con el código) |
+| `Sidebar` | `sidebar.tsx` | Barra lateral por rol (244 px) |
+| `BottomNav` | `bottom-nav.tsx` | Navegación inferior en móvil |
+
+Reutilízalos antes de crear uno nuevo. Los iconos son de [Lucide](https://lucide.dev) (`lucide-react`), de 16 a 24 px, y toda acción lleva etiqueta visible.
 
 ## Pantallas
 
