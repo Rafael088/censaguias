@@ -14,6 +14,7 @@ Cada tarea es un issue de GitHub con el mismo ID en el título, la etiqueta de s
 - Tests de API: helper con Supabase simulado en memoria y sesiones falsas de admin, profesor y estudiante (`apps/api/src/test/`).
 - Web del staff (WEB-03): pantalla `/ingresar` con pestañas y estado de error, sesión guardada con Supabase Auth (`setSession` y refresco), el `Bearer` en el cliente tipado `api`, guard por rol con `GET /v1/me` y los layouts de admin y profesor con barra lateral, cabecera y cerrar sesión.
 - Web: tokens del sistema de diseño (colores, Inter, escala, radios, foco), un formulario de código provisional y el cliente tipado `api`.
+- Web del admin (WEB-04): resumen académico en `/admin` (métricas, distribución por jornada y grupos recientes), lista de grupos con búsqueda, filtro de jornada, paginación y estados vacíos (`admin-02`, `admin-10`), crear grupo con validación en español y pantalla de éxito con el código copiable (`admin-03`), y editar grupo con «Cambios guardados», regenerar el código con confirmación y eliminar con confirmación desde la lista y desde la edición, con el aviso «Grupo eliminado» (`admin-04`, `admin-10`). De paso se corrigió `Button`, que descartaba los `onClick` de todos los botones de la app.
 - CI: typecheck y tests en cada PR.
 
 ## Dentro y fuera del MVP
