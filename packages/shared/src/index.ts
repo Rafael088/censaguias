@@ -9,8 +9,10 @@ export const SHIFT_LABEL: Record<Shift, string> = { morning: "Mañana", night: "
 const SHIFT_LETTER: Record<Shift, string> = { morning: "M", night: "N", saturday: "S" };
 
 const ROMAN = ["", "I", "II", "III", "IV", "V", "VI"];
+/** "CLEI IV" (opciones del selector de crear/editar grupo). */
+export const cleiLabel = (clei: number) => `CLEI ${ROMAN[clei]}`;
 /** "CLEI IV · A" */
-export const groupLabel = (g: { clei: number; identifier: string }) => `CLEI ${ROMAN[g.clei]} · ${g.identifier}`;
+export const groupLabel = (g: { clei: number; identifier: string }) => `${cleiLabel(g.clei)} · ${g.identifier}`;
 
 // ---------- Código de acceso (ADR 0004) ----------
 

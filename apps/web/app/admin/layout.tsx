@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import { StaffShell } from "@/components/staff-shell";
 
 // Navegación del Figma `admin-01-resumen`: Resumen · Grupos CLEI · Profesores.
-// «Grupos CLEI» y «Profesores» se construyen en WEB-04 y WEB-06; hasta entonces sus rutas no existen.
+// «Grupos CLEI» se construyó en WEB-04 (lista, crear y editar); «Profesores» llega en WEB-06.
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
     <StaffShell
