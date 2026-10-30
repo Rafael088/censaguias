@@ -10,26 +10,7 @@ import {
 import { supabaseAdmin, GUIDES_BUCKET } from "../lib/supabase.js";
 import { requireStaff, type AppVars } from "../middleware/auth.js";
 import { findGroup, subjectsOfGroup, throwSupabase, type SubjectDetail } from "../lib/groups.js";
-
-type SubjectRow = {
-  id: string;
-  group_id: string;
-  name: string;
-  description: string | null;
-  teacher_id: string | null;
-};
-
-const SUBJECT_COLUMNS = "id, group_id, name, description, teacher_id";
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-/** La materia por su id, o 404. */
-async function findSubject(db: SupabaseClient, id: string): Promise<SubjectRow> {
-  if (!UUID.test(id)) throw new HTTPException(404, { message: "Materia no encontrada" });
-  const { data, error } = await db.from("subjects").select(SUBJECT_COLUMNS).eq("id", id).maybeSingle();
-  if (error) throwSupabase(error);
-  if (!data) throw new HTTPException(404, { message: "Materia no encontrada" });
-  return data as SubjectRow;
-}
+import { findSubject, SUBJECT_COLUMNS, type SubjectRow } from "../lib/subjects.js";
 
 /** El docente debe existir, ser profesor y estar activo; si no, 400. */
 async function requireActiveTeacher(db: SupabaseClient, teacherId: string): Promise<void> {
@@ -111,9 +92,9 @@ export const groupSubjectRoutes = new Hono<{ Variables: AppVars }>()
 
 // Materias sueltas: editar, cambiar el docente y eliminar (admin-07), solo admin.
 export const subjectRoutes = new Hono<{ Variables: AppVars }>()
-  .use(requireStaff("admin"))
   .patch(
     "/:id",
+    requireStaff("admin"),
     zValidator("json", updateSubjectInput, (result, c) => {
       if (!result.success) return c.json({ error: "Datos de la materia no válidos" }, 400);
     }),
@@ -137,6 +118,7 @@ export const subjectRoutes = new Hono<{ Variables: AppVars }>()
   )
   .put(
     "/:id/teachers",
+    requireStaff("admin"),
     zValidator("json", assignSubjectTeacherInput, (result, c) => {
       if (!result.success) return c.json({ error: "Docente no válido" }, 400);
     }),
@@ -157,7 +139,7 @@ export const subjectRoutes = new Hono<{ Variables: AppVars }>()
       return c.json(await subjectDetail(db, row));
     },
   )
-  .delete("/:id", async (c) => {
+  .delete("/:id", requireStaff("admin"), async (c) => {
     const db = supabaseAdmin();
     const subject = await findSubject(db, c.req.param("id"));
 

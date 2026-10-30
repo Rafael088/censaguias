@@ -8,6 +8,7 @@ import { authRoutes } from "./routes/auth.js";
 import { groupRoutes } from "./routes/groups.js";
 import { meRoutes } from "./routes/me.js";
 import { groupSubjectRoutes, subjectRoutes } from "./routes/subjects.js";
+import { subjectGuideRoutes } from "./routes/guides.js";
 
 const webOrigin = process.env.WEB_ORIGIN ?? "http://localhost:3000";
 
@@ -30,6 +31,7 @@ export function createApp() {
     .route("/v1/groups", groupRoutes)
     .route("/v1/groups", groupSubjectRoutes)
     .route("/v1/subjects", subjectRoutes)
+    .route("/v1/subjects", subjectGuideRoutes)
     .route("/v1/admin", adminRoutes);
   // Siguientes rutas del MVP: ver la tabla de docs/ARQUITECTURA.md
 

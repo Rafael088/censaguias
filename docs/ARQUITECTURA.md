@@ -76,7 +76,7 @@ Contrato del MVP. ✅ = ya existe en el código.
 | `POST /v1/teachers/:id/password` | admin | Poner una contraseña temporal nueva | admin-09 |
 | `GET /v1/teacher/subjects` | profesor | Sus materias por grupo con el conteo publicadas/borradores, más sus guías recientes | profesor-01 |
 | `GET /v1/subjects/:id/guides?status=&topic=&q=` | profesor a cargo | Guías de su materia | profesor-02 |
-| `POST /v1/subjects/:id/guides` | profesor a cargo | Crear guía (multipart: campos + PDF ≤ 10 MB), como borrador o publicada | profesor-03 |
+| `POST /v1/subjects/:id/guides` ✅ | profesor a cargo | Crear guía (multipart: campos + PDF ≤ 10 MB), como borrador o publicada | profesor-03 |
 | `GET/PATCH/DELETE /v1/guides/:id` | profesor a cargo | Detalle, editar (el PDF es opcional para reemplazarlo), eliminar guía y archivo | profesor-04, 05, 06 |
 | `POST /v1/guides/:id/publish` | profesor a cargo | Publicar un borrador | profesor-06 |
 
