@@ -36,6 +36,7 @@ export function Button({
       type={type}
       disabled={disabled}
       className={`inline-flex items-center justify-center gap-2 rounded-control font-semibold transition-opacity outline-none hover:opacity-90 active:opacity-80 disabled:cursor-not-allowed disabled:border-line disabled:bg-tint disabled:text-primary disabled:opacity-100 ${variants[variant]} ${sizes[size]} ${className}`}
+      {...rest}
     >
       {children}
     </button>
