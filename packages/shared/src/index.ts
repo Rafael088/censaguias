@@ -81,6 +81,18 @@ export const createSubjectInput = z.object({
   teacherId: z.uuid(),
 });
 
+/** PATCH /v1/subjects/:id: nombre y descripción; el docente se cambia con PUT /teachers. */
+export const updateSubjectInput = z.object({
+  name: z.string().trim().min(2).max(80).optional(),
+  // null sirve para quitar la descripción; undefined significa «no se toca».
+  description: z.string().trim().max(300).nullish(),
+});
+
+/** PUT /v1/subjects/:id/teachers: un docente por materia; null la deja sin docente. */
+export const assignSubjectTeacherInput = z.object({
+  teacherId: z.uuid().nullable(),
+});
+
 export const guideStatusSchema = z.enum(["draft", "published"]);
 
 export const guideFields = z.object({
