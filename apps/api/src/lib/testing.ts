@@ -341,8 +341,8 @@ export type FakeSupabase = {
    * previa). `times` = cuántas veces se repite.
    */
   withError(table: string, error: FakeError, options?: { times?: number; op?: "select" | "insert" | "update" | "delete" }): void;
-  /** Igual que withError pero para Storage: bucket + "list" | "remove". */
-  withStorageError(bucket: string, operation: "list" | "remove", error: FakeError, times?: number): void;
+  /** Igual que withError pero para Storage: bucket + "list" | "upload" | "remove". */
+  withStorageError(bucket: string, operation: "list" | "upload" | "remove", error: FakeError, times?: number): void;
   /** Bearer de staff con el perfil dado. Lanza si el perfil no está en el seed. */
   staffSession(profileId: string): { headers: Record<string, string> };
   /** Cookie de estudiante firmada con la clave de pruebas; usa el code_version del grupo sembrado. */
@@ -354,7 +354,7 @@ export type FakeSupabase = {
 /**
  * Supabase simulado en memoria para los tests de la API.
  * Cubre lo que la API usa: from/select/insert/update/delete con filtros, paginación,
- * count, single, storage.list/remove y auth.getUser. Las consultas resuelven la forma
+ * count, single, storage.list/upload/remove y auth.getUser. Las consultas resuelven la forma
  * real de supabase-js ({ data, error, count, … }), así que la ruta escribe igual
  * contra el simulado y contra Supabase de verdad.
  */
@@ -416,6 +416,13 @@ export function fakeSupabase(seed: Seed = {}): FakeSupabase {
       from(bucket: string) {
         state.files[bucket] ??= [];
         return {
+          async upload(path: string, _body: unknown, _options?: { contentType?: string }) {
+            const error = takeStorageError(bucket, "upload");
+            if (error) return { data: null, error };
+            const bucketFiles = (state.files[bucket] ??= []);
+            if (!bucketFiles.includes(path)) bucketFiles.push(path);
+            return { data: { path }, error: null };
+          },
           async list(path?: string, options?: { limit?: number; offset?: number }) {
             const error = takeStorageError(bucket, "list");
             if (error) return { data: null, error };
