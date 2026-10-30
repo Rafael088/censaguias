@@ -102,5 +102,19 @@ export const guideFields = z.object({
   status: guideStatusSchema,
 });
 
+/** PATCH /v1/guides/:id: cualquiera de los campos de texto (el estado se cambia con publish). */
+export const updateGuideInput = z.object({
+  topic: z.string().trim().min(2).max(60).optional(),
+  title: z.string().trim().min(2).max(120).optional(),
+  description: z.string().trim().min(2).max(600).optional(),
+});
+
+/** GET /v1/subjects/:id/guides: status filtra por estado, topic por tema, q busca en título o tema. */
+export const guideListQuery = z.object({
+  status: guideStatusSchema.optional(),
+  topic: z.string().trim().max(60).optional(),
+  q: z.string().trim().max(120).optional(),
+});
+
 export const MAX_GUIDE_BYTES = 10 * 1024 * 1024; // 10 MB, como dice el Figma
 export const GUIDE_MIME = "application/pdf";
