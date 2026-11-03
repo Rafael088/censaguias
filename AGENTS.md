@@ -50,6 +50,27 @@ Más detalle: [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md). Por qué es así: [d
 4. PR a `main` con `Closes #<issue>`, qué cambió y cómo probarlo. No se mergea sin una revisión.
 5. Si tomas una decisión de arquitectura nueva, añade un ADR en `docs/decisiones/` en el mismo PR.
 
+## Tareas en Cotejo
+
+Las tareas viven en `.cotejo/tareas.md` y se crean **solo** con `cotejo crear` (nunca editando el archivo a mano). Todas siguen el mismo formato, para que el board, el mapa y los issues cuadren:
+
+```
+v<versión> · <ID> <Nombre corto>: <qué hay que hacer, con rutas o pantallas concretas>. [Depende de <ID>.] Issue #<n>
+```
+
+```bash
+cotejo crear "v0.1.0 · API-10 Buscar guías: GET /v1/guides?q= por título y tema, solo las del grupo del estudiante. Depende de API-07. Issue #27" \
+  --proyecto censaguias --version 0.1.0 --dificultad medio
+```
+
+- **ID**: el área en mayúsculas (`INF`, `API`, `WEB`, `REL`) y el número siguiente de dos cifras. Mira los que ya hay con `cotejo tareas --proyecto censaguias --todas`.
+- **Lo que le falta a una tarea ya hecha** va en una tarea nueva con el mismo ID y una letra (`API-06b`, `WEB-02b`), no reabriendo la original.
+- **Nombre corto**: ≤ 40 caracteres, sin punto final. Es lo que se ve en el board.
+- **Descripción**: en español, con las rutas de la API o las pantallas de `docs/diseno/` que toca. Termina con `Issue #<n>`; si no hay issue, créalo antes (`gh issue create`) con el mismo título `<ID> · <Nombre corto>`.
+- **Siempre** `--version` con la versión en curso (`cotejo version`) y `--dificultad` (`facil`, `medio` o `dificil`).
+- Si la tarea construye una pieza del mapa, añade su id a esa pieza en la arquitectura (`cotejo leer arq-um45` y `cotejo editar`).
+- Ninguna tarea se marca como hecha desde un agente: se entrega con `cotejo entregar` y la persona la comprueba en el board.
+
 ## Comandos
 
 ```bash
