@@ -54,8 +54,9 @@ Más detalle: [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md). Por qué es así: [d
 
 ```bash
 npm install                 # una vez, en la raíz
-npm run dev:api             # API en http://localhost:8787
-npm run dev:web             # Web en http://localhost:3000
+npm run dev                 # web y API a la vez (Ctrl+C para las dos)
+npm run dev:api             # solo la API, en http://localhost:8787
+npm run dev:web             # solo la web, en http://localhost:3000
 npm run typecheck           # todos los paquetes
 npm test                    # vitest (api)
 npx supabase db push        # aplicar migraciones al proyecto enlazado
