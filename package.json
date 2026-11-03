@@ -4,7 +4,7 @@
   "private": true,
   "workspaces": ["apps/*", "packages/*"],
   "scripts": {
-    "dev": "npm run dev --workspaces --if-present",
+    "dev": "node scripts/dev.mjs",
     "dev:web": "npm run dev -w @censaguias/web",
     "dev:api": "npm run dev -w @censaguias/api",
     "build": "npm run build --workspaces --if-present",
