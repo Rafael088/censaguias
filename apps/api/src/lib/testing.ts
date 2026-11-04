@@ -314,7 +314,7 @@ type FakeState = {
   errors: Record<string, QueuedError[]>;
   /** Archivos por bucket, como rutas completas. */
   files: Record<string, string[]>;
-  /** Errores en cola por bucket+operación ("list" | "remove"). */
+  /** Errores en cola por bucket+operación ("list" | "upload" | "remove" | "sign"). */
   storageErrors: Record<string, FakeError[]>;
   /** Rutas que remove() ha borrado, para que el test las compruebe. */
   removed: string[];
@@ -341,8 +341,8 @@ export type FakeSupabase = {
    * previa). `times` = cuántas veces se repite.
    */
   withError(table: string, error: FakeError, options?: { times?: number; op?: "select" | "insert" | "update" | "delete" }): void;
-  /** Igual que withError pero para Storage: bucket + "list" | "upload" | "remove". */
-  withStorageError(bucket: string, operation: "list" | "upload" | "remove", error: FakeError, times?: number): void;
+  /** Igual que withError pero para Storage: bucket + "list" | "upload" | "remove" | "sign". */
+  withStorageError(bucket: string, operation: "list" | "upload" | "remove" | "sign", error: FakeError, times?: number): void;
   /** Bearer de staff con el perfil dado. Lanza si el perfil no está en el seed. */
   staffSession(profileId: string): { headers: Record<string, string> };
   /** Cookie de estudiante firmada con la clave de pruebas; usa el code_version del grupo sembrado. */
@@ -440,6 +440,18 @@ export function fakeSupabase(seed: Seed = {}): FakeSupabase {
               if (index >= 0) bucketFiles.splice(index, 1);
             }
             return { data: paths.map((path) => ({ name: path.split("/").pop() ?? path })), error: null };
+          },
+          async createSignedUrl(path: string, expiresIn: number, options?: { download?: boolean | string }) {
+            const error = takeStorageError(bucket, "sign");
+            if (error) return { data: null, error };
+            // Como Supabase de verdad: firmar un archivo que no está en el bucket falla.
+            if (!(state.files[bucket] ?? []).includes(path)) {
+              return { data: null, error: { message: `El objeto ${path} no existe en el bucket ${bucket}` } };
+            }
+            const query = new URLSearchParams({ expiresIn: String(expiresIn) });
+            if (options?.download === true) query.set("download", "");
+            else if (typeof options?.download === "string") query.set("download", options.download);
+            return { data: { signedUrl: `https://storage.test/${bucket}/${path}?${query}` }, error: null };
           },
         };
       },

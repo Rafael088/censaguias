@@ -3,9 +3,9 @@ import { HTTPException } from "hono/http-exception";
 import { zValidator } from "@hono/zod-validator";
 import { guideFields, guideListQuery, updateGuideInput, GUIDE_MIME } from "@censaguias/shared";
 import { supabaseAdmin, GUIDES_BUCKET } from "../lib/supabase.js";
-import { requireStaff, type AppVars } from "../middleware/auth.js";
+import { requireStaff, requireStudentOrStaff, type AppVars } from "../middleware/auth.js";
 import { findSubject, assertSubjectTeacher } from "../lib/subjects.js";
-import { GUIDE_COLUMNS, findOwnedGuide, mapGuide, type GuideRow } from "../lib/guides.js";
+import { GUIDE_COLUMNS, findGuide, findOwnedGuide, findStudentGuide, mapGuide, type GuideRow } from "../lib/guides.js";
 import { throwSupabase } from "../lib/groups.js";
 import { countPdfPages, readPdfBytes, isPdfRejection } from "../lib/pdf.js";
 
@@ -109,6 +109,31 @@ export const subjectGuideRoutes = new Hono<{ Variables: AppVars }>()
 // El middleware va por ruta, no con .use(): así API-07 podrá añadir aquí la descarga del
 // PDF (que también sirve a estudiantes) sin heredar el filtro de profesor.
 export const guideRoutes = new Hono<{ Variables: AppVars }>()
+  // Descarga del PDF (API-07): URL firmada de 60 s, como en estudiante-03 y profesor-05.
+  // La sirve el estudiante de su grupo (solo publicadas) y el staff: el admin ve cualquier
+  // guía y el profesor solo las de sus materias.
+  .get("/:id/file", requireStudentOrStaff, async (c) => {
+    const db = supabaseAdmin();
+    const student = c.get("student");
+    let guide: GuideRow;
+    if (student) {
+      ({ guide } = await findStudentGuide(db, c.req.param("id"), student.groupId));
+    } else {
+      const staff = c.get("staff");
+      guide =
+        staff.role === "admin"
+          ? await findGuide(db, c.req.param("id"))
+          : await findOwnedGuide(db, c.req.param("id"), staff.id);
+    }
+
+    // download=1 → el navegador guarda el archivo con su nombre en vez de abrirlo en el visor.
+    const download = c.req.query("download") === "1";
+    const { data, error } = await db.storage
+      .from(GUIDES_BUCKET)
+      .createSignedUrl(guide.storage_path, 60, { download: download ? guide.file_name : undefined });
+    if (error) throwSupabase(error);
+    return c.json({ url: data.signedUrl, expiresIn: 60 });
+  })
   .get("/:id", requireStaff("teacher"), async (c) => {
     const db = supabaseAdmin();
     const guide = await findOwnedGuide(db, c.req.param("id"), c.get("staff").id);

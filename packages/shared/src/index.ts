@@ -118,5 +118,11 @@ export const guideListQuery = z.object({
   q: z.string().trim().max(120).optional(),
 });
 
+/** GET /v1/student/subjects/:id/guides: solo publicadas; topic filtra tema y q busca en título o tema. */
+export const studentGuideListQuery = z.object({
+  topic: z.string().trim().max(60).optional(),
+  q: z.string().trim().max(120).optional(),
+});
+
 export const MAX_GUIDE_BYTES = 10 * 1024 * 1024; // 10 MB, como dice el Figma
 export const GUIDE_MIME = "application/pdf";
