@@ -54,6 +54,25 @@ export const createTeacherInput = z.object({
   temporaryPassword: z.string().min(8).max(72),
 });
 
+/** La lista de admin-08 cabe en una página; el total se devuelve siempre. */
+export const TEACHERS_PAGE_SIZE = 12;
+
+/** GET /v1/teachers: q busca por nombre o usuario, page/pageSize paginan. */
+export const teacherListQuery = z.object({
+  q: z.string().trim().max(60).optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(50).default(TEACHERS_PAGE_SIZE),
+});
+
+/** PATCH /v1/teachers/:id: el nombre completo, el usuario, o ambos. */
+export const updateTeacherInput = z.object({
+  fullName: z.string().trim().min(3).max(120).optional(),
+  username: usernameSchema.optional(),
+});
+
+/** POST /v1/teachers/:id/password: contraseña temporal nueva; nunca se lee ni se muestra (ADR 0006). */
+export const teacherPasswordInput = z.object({ password: z.string().min(8).max(72) });
+
 // ---------- Grupos, materias y guías ----------
 
 export const createGroupInput = z.object({
