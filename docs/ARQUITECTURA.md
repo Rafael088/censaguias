@@ -57,10 +57,10 @@ Contrato del MVP. ✅ = ya existe en el código.
 | `DELETE /v1/access` ✅ | estudiante | Salir / cambiar código | estudiante-06 |
 | `POST /v1/auth/login` ✅ | público | Usuario + contraseña → tokens de Supabase | acceso-staff |
 | `GET /v1/me` ✅ | staff | Perfil, rol y, si es profesor, sus materias | cabecera |
-| `GET /v1/student/group` | estudiante | Grupo, materias (docente, nº de guías publicadas) y últimas guías | estudiante-01, 05 |
-| `GET /v1/student/subjects/:id/guides?topic=` | estudiante | Guías publicadas de una materia de su grupo y sus temas | estudiante-02, 04 |
-| `GET /v1/student/guides/:id` | estudiante | Detalle de una guía publicada | estudiante-03 |
-| `GET /v1/guides/:id/file?download=1` | estudiante o staff con acceso | URL firmada (60 s) para abrir o descargar | estudiante-03, profesor-05 |
+| `GET /v1/student/group` ✅ | estudiante | Grupo, materias (docente, nº de guías publicadas) y últimas guías | estudiante-01, 05 |
+| `GET /v1/student/subjects/:id/guides?topic=` ✅ | estudiante | Guías publicadas de una materia de su grupo y sus temas | estudiante-02, 04 |
+| `GET /v1/student/guides/:id` ✅ | estudiante | Detalle de una guía publicada | estudiante-03 |
+| `GET /v1/guides/:id/file?download=1` ✅ | estudiante o staff con acceso | URL firmada (60 s) para abrir o descargar | estudiante-03, profesor-05 |
 | `GET /v1/admin/summary` ✅ | admin | Métricas, distribución por jornada, grupos recientes | admin-01 |
 | `GET /v1/groups?q=&shift=&page=` ✅ | admin | Lista con búsqueda y filtro | admin-02 |
 | `POST /v1/groups` ✅ | admin | Crear grupo (genera el código) | admin-03 |
@@ -70,11 +70,11 @@ Contrato del MVP. ✅ = ya existe en el código.
 | `PATCH /v1/subjects/:id` ✅ | admin | Editar nombre o descripción de la materia | admin-07 |
 | `PUT /v1/subjects/:id/teachers` ✅ | admin | Asignar, cambiar o quitar el docente de la materia | admin-07 |
 | `DELETE /v1/subjects/:id` ✅ | admin | Eliminar materia (con sus guías y PDFs) | admin-07 |
-| `GET /v1/teachers?q=&page=` | admin | Lista con materias y grupos asignados | admin-08 |
-| `POST /v1/teachers` | admin | Registrar profesor (nombre, usuario, contraseña temporal) | admin-09 |
-| `GET/PATCH/DELETE /v1/teachers/:id` | admin | Detalle con asignaciones, editar, eliminar | admin-09, 10 |
-| `POST /v1/teachers/:id/password` | admin | Poner una contraseña temporal nueva | admin-09 |
-| `GET /v1/teacher/subjects` | profesor | Sus materias por grupo con el conteo publicadas/borradores, más sus guías recientes | profesor-01 |
+| `GET /v1/teachers?q=&page=` ✅ | admin | Lista con materias y grupos asignados | admin-08 |
+| `POST /v1/teachers` ✅ | admin | Registrar profesor (nombre, usuario, contraseña temporal) | admin-09 |
+| `GET/PATCH/DELETE /v1/teachers/:id` ✅ | admin | Detalle con asignaciones, editar, eliminar | admin-09, 10 |
+| `POST /v1/teachers/:id/password` ✅ | admin | Poner una contraseña temporal nueva | admin-09 |
+| `GET /v1/teacher/subjects` ✅ | profesor | Sus materias por grupo con el conteo publicadas/borradores, más sus guías recientes | profesor-01 |
 | `GET /v1/subjects/:id/guides?status=&topic=&q=` ✅ | profesor a cargo | Guías de su materia, con el resumen total/publicadas/borradores | profesor-02 |
 | `POST /v1/subjects/:id/guides` ✅ | profesor a cargo | Crear guía (multipart: campos + PDF ≤ 10 MB), como borrador o publicada | profesor-03 |
 | `GET/PATCH/DELETE /v1/guides/:id` ✅ | profesor a cargo | Detalle, editar (el PDF es opcional para reemplazarlo), eliminar guía y archivo | profesor-04, 05, 06 |
