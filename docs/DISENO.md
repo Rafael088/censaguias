@@ -84,7 +84,7 @@ Reutilízalos antes de crear uno nuevo. Los iconos son de [Lucide](https://lucid
 | Estudiante | Detalle de guía (vista previa, abrir y descargar) | `estudiante-03` | `/guias/[id]` |
 | Estudiante | Materia sin guías | `estudiante-04` | `/materias/[id]` |
 | Estudiante | Mi grupo (código, materias y docentes) | `estudiante-05` | `/mi-grupo` |
-| Estudiante | Salir / cambiar código | `estudiante-06` | diálogo |
+| Estudiante | Salir / cambiar código | `estudiante-06` | diálogo (fuera del producto: la web ya no ofrece cambiar de código) |
 
 ## Textos
 

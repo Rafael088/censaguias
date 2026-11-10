@@ -13,7 +13,7 @@
 - [x] WEB-01: Leer el Figma: tokens en @theme, componentes base (boton, input, tarjeta, lista, dialogo, toast, vacio) y completar docs/DISENO.md. Bloquea el resto de la UI. Depende de: nada. Tam. M #medio #v0.1.0 #agente/mimo — 2026-10-22 ^cotejo-2c655c
 - [x] WEB-02: Estudiante: ingreso de codigo con el diseno final, /grupo (asignaturas), /grupo/[subjectId] (guias, abrir y descargar), salir. Depende de: WEB-01, API-07. Tam. M #medio #v0.1.0 #agente/mimo — 2026-10-22 ^cotejo-z1k4by
 - [x] WEB-03: Staff: /login con Supabase Auth, recuperar contrasena, aceptar invitacion, guard por rol, layout de admin y de profesor; enviar el token como Bearer en api. Depende de: WEB-01, API-01. Tam. M #medio #v0.1.0 #agente/mimo — 2026-10-27 ^cotejo-ov17cj
-- [ ] WEB-04: Admin - grupos: lista, crear (mostrar el codigo con boton copiar), archivar. Depende de: WEB-03, API-02. Tam. M #medio #v0.1.0 ^cotejo-pya62c
+- [x] WEB-04: Admin - grupos: lista, crear (mostrar el codigo con boton copiar), archivar. Depende de: WEB-03, API-02. Tam. M #medio #v0.1.0 #agente/mimo — 2026-10-29 ^cotejo-pya62c
 - [ ] WEB-05: Admin - detalle de grupo: codigo (copiar, regenerar con confirmacion), asignaturas (crear, editar, borrar), asignar profesores. Depende de: WEB-04, API-04. Tam. L #dificil #v0.1.0 ^cotejo-mfmmtp
 - [ ] WEB-06: Admin - profesores: lista e invitar. Depende de: WEB-03, API-08. Tam. S #facil #v0.1.0 ^cotejo-99i8ac
 - [ ] WEB-07: Profesor: mis asignaturas, guias de una asignatura, subir PDF con progreso y validacion de tamano y tipo, editar titulo, borrar con confirmacion. Depende de: WEB-03, API-06, API-08. Tam. L #dificil #v0.1.0 ^cotejo-wqr0xm

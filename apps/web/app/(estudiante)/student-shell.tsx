@@ -1,8 +1,7 @@
 "use client";
 
-import { BookOpen, KeyRound, LogOut, Users } from "lucide-react";
+import { BookOpen, KeyRound, Users } from "lucide-react";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { BottomNav } from "@/components/bottom-nav";
 import { Sidebar } from "@/components/sidebar";
@@ -67,7 +66,7 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
 
   return (
     <StudentContext.Provider value={value}>
-      <div className="flex min-h-dvh bg-surface">
+      <div className="flex min-h-dvh bg-surface ">
         {/* Escritorio: barra lateral por rol */}
         <div className="hidden md:block">
           <Sidebar
@@ -77,13 +76,12 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
               { label: "Mi grupo", href: "/mi-grupo", icon: Users, active: activo("/mi-grupo") },
             ]}
             help="Acceso por código de grupo. No necesitas una cuenta."
-            action={{ label: "Cambiar código", icon: LogOut, href: "/mi-grupo/salir" }}
           />
         </div>
 
         <div className="flex min-h-dvh flex-1 flex-col">
           {group && (
-            <div className="hidden items-start justify-between gap-4 border-b border-line px-10 py-5 md:flex">
+            <div className="hidden items-start justify-between gap-4 border-b border-line px-10 py-5 md:flex ">
               <p className="text-meta text-muted">CENSA / Gestión académica · {group.schoolYear}</p>
               <div className="flex items-start gap-2">
                 <KeyRound size={18} className="mt-0.5 shrink-0 text-primary" aria-hidden />
@@ -97,18 +95,11 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
 
           {/* Móvil: barra superior. En las pantallas de detalle la sustituye el «Volver» de la propia página. */}
           {!esDetalle && (
-            <div className="flex items-center justify-between gap-3 border-b border-line px-6 py-4 md:hidden">
+            <div className="flex items-center gap-3 border-b border-line px-6 py-4 md:hidden">
               <span className="flex items-center gap-2 text-label font-semibold text-ink">
                 <BookOpen size={20} aria-hidden />
                 Plataforma educativa
               </span>
-              <Link
-                href="/mi-grupo/salir"
-                aria-label="Salir del grupo"
-                className="grid h-11 w-11 place-items-center rounded-control text-primary outline-none hover:bg-tint"
-              >
-                <LogOut size={20} aria-hidden />
-              </Link>
             </div>
           )}
 

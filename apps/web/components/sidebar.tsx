@@ -26,7 +26,7 @@ export interface SidebarProps {
 
 /**
  * Barra lateral por rol (Figma): 244 px, logo reservado, espacio con etiqueta,
- * navegación (activo en verde sólido) y acción al pie («Cambiar código» / «Cerrar sesión»).
+ * navegación (activo en verde sólido) y acción al pie («Cerrar sesión» en el staff).
  */
 export function Sidebar({ space, items, help, action }: SidebarProps) {
   return (

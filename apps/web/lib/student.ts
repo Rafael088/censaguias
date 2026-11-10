@@ -134,18 +134,6 @@ export async function getStudentGuideFile(
   );
 }
 
-/**
- * Salir / cambiar de código (DELETE /v1/access, sí existe en la API).
- * Si la API no está, no pasa nada: la cookie caduca sola y la pantalla de acceso manda.
- */
-export async function leaveStudentGroup(): Promise<void> {
-  try {
-    await fetch("/api/v1/access", { method: "DELETE", credentials: "include" });
-  } catch {
-    console.warn("[WEB-02] No se pudo cerrar la sesión en la API; la cookie caducará por su cuenta.");
-  }
-}
-
 // ---------- Datos de muestra (sustituidos por API-07) ----------
 
 function demoOverview(): StudentOverview {

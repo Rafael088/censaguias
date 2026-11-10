@@ -8,7 +8,7 @@ CensaGuias es la plataforma educativa de CENSA. Reúne en un solo lugar las guí
 
 - **Admin**: crea grupos CLEI (CLEI I–VI, identificador de una letra A/B/C…, jornada Mañana/Noche/Sabatina, año lectivo). Al crear un grupo se genera su **código de acceso** (`CENSA-4AM-K7Q`). Crea las materias del grupo, cada una con **un** profesor, y registra a los profesores con usuario institucional y contraseña temporal.
 - **Profesor**: entra con **usuario institucional** (no con correo). Solo ve sus materias. Crea guías (tema, título, descripción y PDF ≤ 10 MB) como **borrador** o **publicadas**; también las edita, publica y elimina.
-- **Estudiante**: **no tiene cuenta**. Escribe el código del grupo y ve sus materias y solo las guías **publicadas**. Puede abrirlas, descargarlas, salir o cambiar de código.
+- **Estudiante**: **no tiene cuenta**. Escribe el código del grupo y ve sus materias y solo las guías **publicadas**. Puede abrirlas y descargarlas. No hay opción de salir ni de cambiar el código: con el código entra y navega mientras dure la sesión.
 
 ## Mapa del repo
 
