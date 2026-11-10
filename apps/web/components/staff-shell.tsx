@@ -114,7 +114,7 @@ export function StaffShell({ role, space, items, children }: StaffShellProps) {
             action={{ label: "Cerrar sesión", icon: LogOut, onClick: onSignOut }}
           />
         </div>
-        <div className="flex h-full min-w-0 flex-1 flex-col">
+        <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
           <header className="flex items-center justify-between gap-4 border-b border-line px-4 py-3">
             <p className="text-meta text-muted">CENSA / Gestión académica · 2026</p>
             <div className="flex items-center gap-3">
