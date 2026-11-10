@@ -66,17 +66,19 @@ Contrato del MVP. ✅ = ya existe en el código.
 | `POST /v1/groups` ✅ | admin | Crear grupo (genera el código) | admin-03 |
 | `GET/PATCH/DELETE /v1/groups/:id` ✅ | admin | Detalle, editar, eliminar (con sus materias, guías y PDFs) | admin-04, 05, 10 |
 | `POST /v1/groups/:id/code` ✅ | admin | Regenerar el código (sube `code_version`) | admin-04 |
-| `POST /v1/groups/:id/subjects` | admin | Crear materia con su docente | admin-06 |
-| `PATCH/DELETE /v1/subjects/:id` | admin | Editar materia o cambiar de docente; eliminar | admin-07 |
+| `GET/POST /v1/groups/:id/subjects` ✅ | admin | Lista y crea materias del grupo (con su docente) | admin-05, 06 |
+| `PATCH /v1/subjects/:id` ✅ | admin | Editar nombre o descripción de la materia | admin-07 |
+| `PUT /v1/subjects/:id/teachers` ✅ | admin | Asignar, cambiar o quitar el docente de la materia | admin-07 |
+| `DELETE /v1/subjects/:id` ✅ | admin | Eliminar materia (con sus guías y PDFs) | admin-07 |
 | `GET /v1/teachers?q=&page=` | admin | Lista con materias y grupos asignados | admin-08 |
 | `POST /v1/teachers` | admin | Registrar profesor (nombre, usuario, contraseña temporal) | admin-09 |
 | `GET/PATCH/DELETE /v1/teachers/:id` | admin | Detalle con asignaciones, editar, eliminar | admin-09, 10 |
 | `POST /v1/teachers/:id/password` | admin | Poner una contraseña temporal nueva | admin-09 |
 | `GET /v1/teacher/subjects` | profesor | Sus materias por grupo con el conteo publicadas/borradores, más sus guías recientes | profesor-01 |
-| `GET /v1/subjects/:id/guides?status=&topic=&q=` | profesor a cargo | Guías de su materia | profesor-02 |
-| `POST /v1/subjects/:id/guides` | profesor a cargo | Crear guía (multipart: campos + PDF ≤ 10 MB), como borrador o publicada | profesor-03 |
-| `GET/PATCH/DELETE /v1/guides/:id` | profesor a cargo | Detalle, editar (el PDF es opcional para reemplazarlo), eliminar guía y archivo | profesor-04, 05, 06 |
-| `POST /v1/guides/:id/publish` | profesor a cargo | Publicar un borrador | profesor-06 |
+| `GET /v1/subjects/:id/guides?status=&topic=&q=` ✅ | profesor a cargo | Guías de su materia, con el resumen total/publicadas/borradores | profesor-02 |
+| `POST /v1/subjects/:id/guides` ✅ | profesor a cargo | Crear guía (multipart: campos + PDF ≤ 10 MB), como borrador o publicada | profesor-03 |
+| `GET/PATCH/DELETE /v1/guides/:id` ✅ | profesor a cargo | Detalle, editar (el PDF es opcional para reemplazarlo), eliminar guía y archivo | profesor-04, 05, 06 |
+| `POST /v1/guides/:id/publish` ✅ | profesor a cargo | Publicar un borrador (idempotente) | profesor-06 |
 
 ## Subida de un PDF
 
