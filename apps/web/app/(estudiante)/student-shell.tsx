@@ -66,7 +66,7 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
 
   return (
     <StudentContext.Provider value={value}>
-      <div className="flex min-h-dvh bg-surface ">
+      <div className="flex min-h-dvh bg-surface overflow-hidden">
         {/* Escritorio: barra lateral por rol */}
         <div className="hidden md:block">
           <Sidebar
@@ -79,7 +79,7 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
           />
         </div>
 
-        <div className="flex min-h-dvh flex-1 flex-col">
+        <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
           {group && (
             <div className="hidden items-start justify-between gap-4 border-b border-line px-10 py-5 md:flex ">
               <p className="text-meta text-muted">CENSA / Gestión académica · {group.schoolYear}</p>
@@ -103,7 +103,7 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
             </div>
           )}
 
-          <main className="flex-1 px-6 py-6 pb-28 md:px-10 md:py-8 md:pb-10">
+          <main className="flex-1 overflow-y-auto px-6 py-6 pb-28 md:px-10 md:py-8 md:pb-10">
             {children}
             <footer className="mt-10 flex flex-wrap items-center justify-between gap-2 text-meta text-muted">
               <span>Plataforma educativa CENSA</span>
