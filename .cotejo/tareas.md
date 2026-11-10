@@ -24,3 +24,4 @@
 - [x] v0.1.0 · API-06b Materias del profesor: GET /v1/teacher/subjects con sus grupos y el número de guías. Es lo único que falta de API-06 y lo necesita WEB-07. Issue #8 #facil #v0.1.0 #agente/mimo — 2026-11-03 ^cotejo-8kozh4
 - [ ] v0.1.0 · API-05b Límite de subida en Vercel: subir un PDF de 10 MB a la API desplegada y, si Vercel lo corta, pasar a subida firmada (ADR 0005). Depende de INF-02. Issue #7 #medio #v0.1.0 ^cotejo-rgsj6s
 - [ ] v0.1.0 · WEB-02b Estudiante con datos reales: conectar lib/student.ts a las rutas de API-07 con hc<AppType> y borrar student-demo.ts; hoy las pantallas del estudiante enseñan los datos de muestra del Figma. Depende de API-07. Issue #13 #facil #v0.1.0 ^cotejo-4483mq
+- [ ] v0.1.0 · WEB-06b Profesores con datos reales: conectar apps/web/lib/teachers.ts con las rutas de API-08 usando hc<AppType>, conectar las asignaciones de materias y borrar teachers-demo.ts. Depende de API-08. Issue #31 #medio #v0.1.0 ^cotejo-kxg21g
