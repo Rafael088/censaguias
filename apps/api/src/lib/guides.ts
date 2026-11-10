@@ -1,7 +1,7 @@
 import { HTTPException } from "hono/http-exception";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { throwSupabase } from "./groups.js";
-import { findSubject, assertSubjectTeacher } from "./subjects.js";
+import { findSubject, assertSubjectTeacher, type SubjectRow } from "./subjects.js";
 
 export const GUIDE_COLUMNS =
   "id, subject_id, topic, title, description, status, published_at, storage_path, file_name, size_bytes, page_count, created_at, updated_at";
@@ -61,4 +61,21 @@ export async function findOwnedGuide(db: SupabaseClient, id: string, staffId: st
   const subject = await findSubject(db, guide.subject_id);
   assertSubjectTeacher(subject, staffId);
   return guide;
+}
+
+/**
+ * La guía como la ve un estudiante del grupo: solo si está publicada y su materia es
+ * del grupo de su sesión; borrador o de otro grupo → 404, sin decir cuál de las dos.
+ */
+export async function findStudentGuide(
+  db: SupabaseClient,
+  guideId: string,
+  groupId: string,
+): Promise<{ guide: GuideRow; subject: SubjectRow }> {
+  const guide = await findGuide(db, guideId);
+  const subject = await findSubject(db, guide.subject_id);
+  if (guide.status !== "published" || subject.group_id !== groupId) {
+    throw new HTTPException(404, { message: "Guía no encontrada" });
+  }
+  return { guide, subject };
 }

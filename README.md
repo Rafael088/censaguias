@@ -15,8 +15,7 @@ cp .env.example apps/api/.env          # y rellena los valores de Supabase
 cp .env.example apps/web/.env.local    # solo las variables NEXT_PUBLIC_*
 npx supabase link --project-ref <ref>
 npx supabase db push
-npm run dev:api   # http://localhost:8787
-npm run dev:web   # http://localhost:3000
+npm run dev       # web en http://localhost:3000 y API en http://localhost:8787
 ```
 
 ## Documentación

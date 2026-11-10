@@ -19,6 +19,8 @@ export type Seed = {
   guides?: Row[];
   /** Credenciales de login simuladas: correo → contraseña (para auth.signInWithPassword). */
   logins?: Record<string, string>;
+  /** Usuarios de Supabase Auth (auth.admin): el correo sintético del staff (ADR 0006). */
+  authUsers?: AuthUser[];
   /** Archivos del bucket, por nombre de bucket: rutas completas como "{groupId}/{subjectId}/{guideId}.pdf". */
   storage?: Record<string, string[]>;
 };
@@ -314,14 +316,19 @@ type FakeState = {
   errors: Record<string, QueuedError[]>;
   /** Archivos por bucket, como rutas completas. */
   files: Record<string, string[]>;
-  /** Errores en cola por bucket+operación ("list" | "remove"). */
+  /** Errores en cola por bucket+operación ("list" | "upload" | "remove" | "sign"). */
   storageErrors: Record<string, FakeError[]>;
   /** Rutas que remove() ha borrado, para que el test las compruebe. */
   removed: string[];
+  /** Usuarios de auth.users simulados; la cascada de la migración vive en auth.admin.deleteUser. */
+  authUsers: AuthUser[];
 };
 
 /** Error esperado por un test; `op` lo limita a ese tipo de consulta. */
 type QueuedError = { error: FakeError; op?: "select" | "insert" | "update" | "delete" };
+
+/** Usuario de Supabase Auth simulado: solo lo que la API toca con auth.admin (ADR 0006). */
+export type AuthUser = { id: string; email: string; password?: string };
 
 export type FakeSupabase = {
   /** Cliente para setSupabaseForTests (ya instalado al crear). */
@@ -333,6 +340,8 @@ export type FakeSupabase = {
   guides: Row[];
   /** Archivos del bucket "guides" (rutas completas), mutables desde el test. */
   files: string[];
+  /** Usuarios de Supabase Auth simulados (correo sintético del staff), mutables desde el test. */
+  authUsers: AuthUser[];
   /** Rutas que la API ha borrado de Storage, para comprobar el DELETE. */
   removed: string[];
   /**
@@ -341,8 +350,8 @@ export type FakeSupabase = {
    * previa). `times` = cuántas veces se repite.
    */
   withError(table: string, error: FakeError, options?: { times?: number; op?: "select" | "insert" | "update" | "delete" }): void;
-  /** Igual que withError pero para Storage: bucket + "list" | "upload" | "remove". */
-  withStorageError(bucket: string, operation: "list" | "upload" | "remove", error: FakeError, times?: number): void;
+  /** Igual que withError pero para Storage: bucket + "list" | "upload" | "remove" | "sign". */
+  withStorageError(bucket: string, operation: "list" | "upload" | "remove" | "sign", error: FakeError, times?: number): void;
   /** Bearer de staff con el perfil dado. Lanza si el perfil no está en el seed. */
   staffSession(profileId: string): { headers: Record<string, string> };
   /** Cookie de estudiante firmada con la clave de pruebas; usa el code_version del grupo sembrado. */
@@ -354,7 +363,8 @@ export type FakeSupabase = {
 /**
  * Supabase simulado en memoria para los tests de la API.
  * Cubre lo que la API usa: from/select/insert/update/delete con filtros, paginación,
- * count, single, storage.list/upload/remove y auth.getUser. Las consultas resuelven la forma
+ * count, single, storage.list/upload/remove/createSignedUrl, auth.getUser y auth.admin
+ * (createUser/deleteUser/updateUserById). Las consultas resuelven la forma
  * real de supabase-js ({ data, error, count, … }), así que la ruta escribe igual
  * contra el simulado y contra Supabase de verdad.
  */
@@ -363,6 +373,7 @@ export function fakeSupabase(seed: Seed = {}): FakeSupabase {
   const groups = seed.groups ?? [];
   const subjects = seed.subjects ?? [];
   const guides = seed.guides ?? [];
+  const authUsers = seed.authUsers ?? [];
   const files = { ...(seed.storage ?? {}) };
 
   const state: FakeState = {
@@ -371,6 +382,7 @@ export function fakeSupabase(seed: Seed = {}): FakeSupabase {
     files,
     storageErrors: {},
     removed: [],
+    authUsers,
   };
 
   // token de acceso falso → id de usuario (lo que Supabase Auth haría de verdad).
@@ -441,6 +453,18 @@ export function fakeSupabase(seed: Seed = {}): FakeSupabase {
             }
             return { data: paths.map((path) => ({ name: path.split("/").pop() ?? path })), error: null };
           },
+          async createSignedUrl(path: string, expiresIn: number, options?: { download?: boolean | string }) {
+            const error = takeStorageError(bucket, "sign");
+            if (error) return { data: null, error };
+            // Como Supabase de verdad: firmar un archivo que no está en el bucket falla.
+            if (!(state.files[bucket] ?? []).includes(path)) {
+              return { data: null, error: { message: `El objeto ${path} no existe en el bucket ${bucket}` } };
+            }
+            const query = new URLSearchParams({ expiresIn: String(expiresIn) });
+            if (options?.download === true) query.set("download", "");
+            else if (typeof options?.download === "string") query.set("download", options.download);
+            return { data: { signedUrl: `https://storage.test/${bucket}/${path}?${query}` }, error: null };
+          },
         };
       },
     },
@@ -468,6 +492,56 @@ export function fakeSupabase(seed: Seed = {}): FakeSupabase {
           error: null,
         });
       },
+      admin: {
+        // Como supabase-js: un correo ya dado de alta devuelve error "email_exists".
+        createUser({ email, password }: { email: string; password?: string; email_confirm?: boolean }): Promise<{
+          data: { user: { id: string } | null };
+          error: FakeError | null;
+        }> {
+          if (state.authUsers.some((user) => user.email === email)) {
+            return Promise.resolve({
+              data: { user: null },
+              error: { message: "A user with this email address has already been registered", code: "email_exists" },
+            });
+          }
+          const user: AuthUser = { id: uuid(), email, password };
+          state.authUsers.push(user);
+          return Promise.resolve({ data: { user: { id: user.id } }, error: null });
+        },
+        // La cascada de la migración: profiles.id references auth.users on delete cascade y
+        // subjects.teacher_id / groups.created_by son on delete set null.
+        deleteUser(id: string): Promise<{ data: Record<string, never>; error: FakeError | null }> {
+          const index = state.authUsers.findIndex((user) => user.id === id);
+          if (index < 0) return Promise.resolve({ data: {}, error: { message: "User not found" } });
+          state.authUsers.splice(index, 1);
+
+          const profileRows = state.tables.profiles ?? [];
+          const profileIndex = profileRows.findIndex((row) => row.id === id);
+          if (profileIndex >= 0) profileRows.splice(profileIndex, 1);
+          for (const subject of state.tables.subjects ?? []) if (subject.teacher_id === id) subject.teacher_id = null;
+          for (const group of state.tables.groups ?? []) if (group.created_by === id) group.created_by = null;
+          return Promise.resolve({ data: {}, error: null });
+        },
+        updateUserById(
+          id: string,
+          attributes: { email?: string; password?: string },
+        ): Promise<{ data: { user: { id: string } | null }; error: FakeError | null }> {
+          const user = state.authUsers.find((row) => row.id === id);
+          if (!user) return Promise.resolve({ data: { user: null }, error: { message: "User not found" } });
+          if (
+            attributes.email &&
+            state.authUsers.some((row) => row.email === attributes.email && row.id !== id)
+          ) {
+            return Promise.resolve({
+              data: { user: null },
+              error: { message: "A user with this email address has already been registered", code: "email_exists" },
+            });
+          }
+          if (attributes.email !== undefined) user.email = attributes.email;
+          if (attributes.password !== undefined) user.password = attributes.password;
+          return Promise.resolve({ data: { user: { id: user.id } }, error: null });
+        },
+      },
     },
   } as unknown as SupabaseClient;
 
@@ -482,6 +556,7 @@ export function fakeSupabase(seed: Seed = {}): FakeSupabase {
     guides,
     files: state.files.guides ?? [],
     removed: state.removed,
+    authUsers,
     withError(table, error, options = {}) {
       const { times = 1, op } = options;
       state.errors[table] ??= [];
