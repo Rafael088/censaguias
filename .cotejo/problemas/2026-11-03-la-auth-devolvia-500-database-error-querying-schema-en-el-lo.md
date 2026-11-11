@@ -1,7 +1,7 @@
 ---
 id: pro-94z7
 fecha: 2026-11-03
-temas: []
+temas: [auth, datos]
 estado: resuelto
 solucion: Rellenarlas con `''` (`coalesce`) y crear los usuarios por la API de Auth o el dashboard, no con `insert` a mano
 origen: 01-Proyectos/CensaGuias/CensaGuias.md#🪤 Problemas y soluciones:f5401bb3
