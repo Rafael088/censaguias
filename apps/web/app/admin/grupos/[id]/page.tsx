@@ -2,7 +2,7 @@
 
 import { Plus, Trash2, Edit3, User } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, type FormEvent } from "react";
+import { use, useEffect, useState, type FormEvent } from "react";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { Button } from "@/components/button";
 import { CodeChip } from "@/components/code-chip";
@@ -29,13 +29,14 @@ import {
 /** Detalle de grupo (Figma `admin-05`): código con copiar, tabla de materias y docentes,
  *  crear materia, editar nombre/descripción, cambiar docente y eliminar materia.
  */
-export default function AdminGrupoDetalle() {
+export default function AdminGrupoDetalle({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
-  const id = new URLSearchParams(window.location.search).get("id");
-  if (!id) router.replace("/admin/grupos");
-  // Next 15 ya no expone params en page props de cliente sin getServerSideProps;
-  // leemos el id de la URL. Las rutas dinámicas de Next 16 sí lo inyectan, pero aquí
-  // usamos searchParams para no romper la compilación.
+  const { id } = use(params);
+
+  // Si no hay id de ruta, redirigir a la lista de grupos (fuera del render para no romper React).
+  useEffect(() => {
+    if (!id) router.replace("/admin/grupos");
+  }, [id, router]);
 
   const [group, setGroup] = useState<{ id: string; label: string; accessCode: string } | null>(null);
   const [subjects, setSubjects] = useState<SubjectDetail[]>([]);
