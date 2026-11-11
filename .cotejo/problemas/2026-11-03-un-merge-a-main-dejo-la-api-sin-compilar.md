@@ -1,7 +1,7 @@
 ---
 id: pro-f06p
 fecha: 2026-11-03
-temas: []
+temas: [proceso, pruebas]
 estado: resuelto
 solucion: Revisar que `npm test` de la API corra antes de mergear; un merge que deja 0 tests no es un merge
 origen: 01-Proyectos/CensaGuias/CensaGuias.md#🪤 Problemas y soluciones:be42a8f3
