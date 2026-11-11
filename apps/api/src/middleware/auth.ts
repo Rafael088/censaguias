@@ -65,15 +65,23 @@ export const requireStudent = createMiddleware<{ Variables: AppVars }>(async (c,
 
 /**
  * Para la descarga del PDF (API-07): estudiante con cookie o staff con Bearer.
- * Si trae Bearer se evalúa como staff (aunque también tenga cookie); sin él, como estudiante.
+ * Si trae Bearer y es staff válido, se evalúa como staff. Si el Bearer falla o no hay,
+ * se intenta como estudiante con la cookie de sesión.
  */
 export const requireStudentOrStaff = createMiddleware<{ Variables: AppVars }>(async (c, next) => {
   const token = c.req.header("Authorization")?.replace(/^Bearer /, "");
   if (token) {
-    c.set("staff", await resolveStaff(token, []));
-    await next();
-    return;
+    try {
+      c.set("staff", await resolveStaff(token, []));
+      await next();
+      return;
+    } catch (err) {
+      // Si el token Bearer es inválido (401), se intenta como estudiante con la cookie.
+      // Si es 403 (sin permiso, ej. profesor desactivado), se mantiene el 403.
+      if (!(err instanceof HTTPException) || err.status !== 401) throw err;
+    }
   }
+  // Sin Bearer válido: se intenta como estudiante con la cookie de sesión.
   const cookie = getCookie(c, STUDENT_COOKIE);
   if (!cookie) throw new HTTPException(401, { message: "Falta sesión" });
   const session = await studentFromToken(cookie);

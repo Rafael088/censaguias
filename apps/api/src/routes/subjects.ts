@@ -90,8 +90,18 @@ export const groupSubjectRoutes = new Hono<{ Variables: AppVars }>()
     },
   );
 
-// Materias sueltas: editar, cambiar el docente y eliminar (admin-07), solo admin.
+// Todas las materias (para el admin): listar con su docente y grupo. Se usa para
+// saber qué materias están sin docente y pueden asignarse (admin-09).
 export const subjectRoutes = new Hono<{ Variables: AppVars }>()
+  .get("/", requireStaff("admin"), async (c) => {
+    const db = supabaseAdmin();
+    const { data, error } = await db
+      .from("subjects")
+      .select("id, name, group_id, teacher_id")
+      .order("name");
+    if (error) throwSupabase(error);
+    return c.json({ items: (data ?? []) as { id: string; name: string; group_id: string; teacher_id: string | null }[] });
+  })
   .patch(
     "/:id",
     requireStaff("admin"),

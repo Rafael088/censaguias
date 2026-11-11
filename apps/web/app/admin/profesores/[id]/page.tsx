@@ -3,7 +3,7 @@
 import { Check, Plus } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
-import { SHIFT_LABEL } from "@censaguias/shared";
+import { SHIFT_LABEL, type Shift } from "@censaguias/shared";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { Button } from "@/components/button";
 import { DataTable, TableActions, TableCell, TableRow } from "@/components/data-table";
@@ -382,7 +382,7 @@ function DetalleProfesor({
               {teacher.assignments.map((assignment) => (
                 <TableRow key={assignment.id}>
                   <TableCell className="font-semibold">{assignment.group.label}</TableCell>
-                  <TableCell className="text-muted">{SHIFT_LABEL[assignment.group.shift]}</TableCell>
+                  <TableCell className="text-muted">{SHIFT_LABEL[assignment.group.shift as Shift]}</TableCell>
                   <TableCell className="text-muted">{assignment.subject.name}</TableCell>
                   <TableCell className="text-muted">{assignment.group.accessCode}</TableCell>
                   <TableCell>
@@ -513,7 +513,7 @@ function AssignmentDialog({
       id: assignment.subject.id,
       groupId: assignment.group.id,
       name: assignment.subject.name,
-      label: `${assignment.group.label} · ${SHIFT_LABEL[assignment.group.shift]} — ${assignment.subject.name}`,
+      label: `${assignment.group.label} · ${SHIFT_LABEL[assignment.group.shift as Shift]} — ${assignment.subject.name}`,
     });
   }
 
