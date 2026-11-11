@@ -36,11 +36,12 @@ export function Dialog({ open, onClose, title, description, children, actions }:
         role="dialog"
         aria-modal="true"
         aria-label={title}
+        aria-describedby={description ? `${title}-desc` : undefined}
         onClick={(event) => event.stopPropagation()}
         className="w-full max-w-sm rounded-panel border border-line bg-surface p-5"
       >
         <div className="flex items-start justify-between gap-4">
-          <h2 className="text-xl font-semibold text-ink">{title}</h2>
+          <h2 id={`${title}-desc`} className="text-xl font-semibold text-ink">{title}</h2>
           <button
             type="button"
             aria-label="Cerrar"
@@ -50,7 +51,7 @@ export function Dialog({ open, onClose, title, description, children, actions }:
             <X size={20} aria-hidden />
           </button>
         </div>
-        {description && <p className="mt-2 text-meta text-muted">{description}</p>}
+        {description && <p id={`${title}-desc-p`} className="mt-2 text-meta text-muted">{description}</p>}
         {children && <div className="mt-4 text-label text-ink">{children}</div>}
         {actions && <div className="mt-5 flex flex-wrap justify-end gap-2">{actions}</div>}
       </div>

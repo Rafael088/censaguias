@@ -217,7 +217,7 @@ export default function ComponentesPage() {
                 { label: "Materias", href: "#", icon: BookOpen, active: true },
                 { label: "Mi grupo", href: "#", icon: Users },
               ]}
-              action={{ label: "Cambiar código", href: "#", icon: LogOut }}
+              action={{ label: "Cerrar sesión", href: "#", icon: LogOut }}
             />
           </div>
           <div className="w-full max-w-[390px] rounded-card border border-line bg-tint p-4">

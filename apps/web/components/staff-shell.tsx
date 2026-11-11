@@ -104,7 +104,8 @@ export function StaffShell({ role, space, items, children }: StaffShellProps) {
 
   return (
     <ProfileContext.Provider value={profile}>
-      <div className="flex min-h-dvh bg-surface">
+      {/* El shell ocupa exactamente el viewport: solo el contenido central scrollea. */}
+      <div className="flex h-dvh overflow-hidden bg-surface">
         <div className="hidden md:block">
           <Sidebar
             space={space}
@@ -113,8 +114,8 @@ export function StaffShell({ role, space, items, children }: StaffShellProps) {
             action={{ label: "Cerrar sesión", icon: LogOut, onClick: onSignOut }}
           />
         </div>
-        <div className="flex min-w-0 flex-1 flex-col">
-          <header className="flex items-center justify-between gap-4 border-b border-line px-6 py-4">
+        <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
+          <header className="flex items-center justify-between gap-4 border-b border-line px-4 py-3">
             <p className="text-meta text-muted">CENSA / Gestión académica · 2026</p>
             <div className="flex items-center gap-3">
               <div className="flex size-9 items-center justify-center rounded-full bg-tint text-primary">
@@ -127,7 +128,7 @@ export function StaffShell({ role, space, items, children }: StaffShellProps) {
             </div>
           </header>
           {/* Móvil: la barra lateral no cabe; la navegación pasa a la cabecera (WEB-08 revisa el móvil). */}
-          <nav className="flex items-center gap-2 overflow-x-auto border-b border-line px-4 py-3 md:hidden" aria-label={space}>
+          <nav className="flex items-center gap-1 border-b border-line px-2 py-3 md:hidden" aria-label={space}>
             {items.map((item) => (
               <Link
                 key={item.href}
@@ -147,9 +148,10 @@ export function StaffShell({ role, space, items, children }: StaffShellProps) {
               Cerrar sesión
             </button>
           </nav>
-          <main className="flex-1 px-6 py-8">{children}</main>
+          {/* Única zona scrolleable del staff: cabecera y barra lateral quedan fijas. */}
+          <main className="flex-1 overflow-y-auto px-3 py-4">{children}</main>
         </div>
       </div>
     </ProfileContext.Provider>
-  );
+  );  
 }

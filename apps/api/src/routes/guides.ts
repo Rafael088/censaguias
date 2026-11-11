@@ -132,7 +132,7 @@ export const guideRoutes = new Hono<{ Variables: AppVars }>()
       .from(GUIDES_BUCKET)
       .createSignedUrl(guide.storage_path, 60, { download: download ? guide.file_name : undefined });
     if (error) throwSupabase(error);
-    return c.json({ url: data.signedUrl, expiresIn: 60 });
+    return c.json({ url: data.signedUrl, expiresIn: 60, fileName: guide.file_name });
   })
   .get("/:id", requireStaff("teacher"), async (c) => {
     const db = supabaseAdmin();

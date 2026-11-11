@@ -1,9 +1,7 @@
 "use client";
 
-import { LogOut } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/button";
 import { DataTable, TableActions, TableCell, TableRow } from "@/components/data-table";
 import { EmptyState } from "@/components/empty-state";
 import { Notice } from "@/components/notice";
@@ -58,14 +56,7 @@ export default function MiGrupoPage() {
           <Notice title="No necesitas una cuenta para consultar tus guías">
             Tu acceso depende solo del código de grupo. No se solicita nombre de usuario, contraseña ni correo.
           </Notice>
-          <p className="hidden text-meta text-muted md:block">
-            ¿Este no es tu grupo? Sal e ingresa con el código que te entregue tu institución.
-          </p>
           <p className="text-meta text-muted md:hidden">No necesitas una cuenta para consultar tus guías.</p>
-          <Button variant="secondary" onClick={() => router.push("/mi-grupo/salir")} className="md:self-start">
-            <LogOut size={18} aria-hidden />
-            Salir / Cambiar código
-          </Button>
         </section>
       </div>
 
