@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { use, useEffect, useState, type FormEvent } from "react";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { Button } from "@/components/button";
 import { Field } from "@/components/field";
@@ -13,11 +13,10 @@ import { deleteGuide, getGuide, publishGuide, replaceGuidePdf, updateGuide, type
 /** Editar una guía (Figma `profesor-04` y `profesor-05`): editar título/tema/descripción,
  *  reemplazar el PDF, publicar/despublicar y eliminar con confirmación.
  */
-export default function EditarGuía() {
+export default function EditarGuía({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
-  const guideId = searchParams.get("guideId") || "";
+  const { id: guideId } = use(params);
 
   const [guide, setGuide] = useState<TeacherGuide | null>(null);
   const [fallo, setFallo] = useState(false);
