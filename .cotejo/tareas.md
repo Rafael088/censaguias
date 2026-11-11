@@ -18,7 +18,7 @@
 - [x] v0.1.0 · WEB-05 Admin, detalle de grupo y materias: código con Copiar, tabla de materias y docentes, crear materia y asignar profesor, editar o cambiar de docente, eliminar. Pantallas admin-05 a 07. Issue #16 #medio #v0.1.0 — 2026-11-10 ^cotejo-gzhkys
 - [x] v0.1.0 · WEB-06 Admin, profesores: lista con búsqueda, registrar con contraseña temporal, detalle con asignaciones, editar, restablecer contraseña y eliminar. Pantallas admin-08, 09 y 10. Issue #17 #medio #v0.1.0 — 2026-11-10 ^cotejo-kaajsn
 - [x] v0.1.0 · WEB-07 UI del profesor: inicio, guías por materia con filtros, crear guía (arrastrar PDF, borrador o publicar), editar y reemplazar PDF, detalle con vista previa, publicar y eliminar. Pantallas profesor-*. Issue #18 #dificil #v0.1.0 — 2026-11-10 ^cotejo-q5pk60
-- [ ] v0.1.0 · WEB-08 Pulido: estados de carga, vacío y error en todas las pantallas; revisión a 390 y 1440 px; accesibilidad (teclado, foco de 2 px, áreas de 44 px, etiquetas). Issue #19 #medio #v0.1.0 ^cotejo-q3m7cn
+- [x] v0.1.0 · WEB-08 Pulido: estados de carga, vacío y error en todas las pantallas; revisión a 390 y 1440 px; accesibilidad (teclado, foco de 2 px, áreas de 44 px, etiquetas). Issue #19 #medio #v0.1.0 — 2026-11-10 ^cotejo-q3m7cn
 - [ ] v0.1.0 · REL-01 Prueba de aceptación y release: recorrer los 8 pasos del planning en producción, corregir lo que salga, etiquetar v0.1.0 y escribir las notas. Issue #20 #v0.1.0 #agente/humano ^cotejo-cw9mbx
 - [ ] Revisar lo importado: resúmenes, temas y fichas #medio ^cotejo-bdfcqn
 - [x] v0.1.0 · API-06b Materias del profesor: GET /v1/teacher/subjects con sus grupos y el número de guías. Es lo único que falta de API-06 y lo necesita WEB-07. Issue #8 #facil #v0.1.0 #agente/mimo — 2026-11-03 ^cotejo-8kozh4
