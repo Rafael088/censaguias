@@ -239,7 +239,8 @@ export function validateSubjectForm(values: SubjectFormValues, teachers: Teacher
 /** Lista las materias de un grupo con su docente y guías publicadas (admin-05). */
 export async function listSubjects(groupId: string): Promise<SubjectDetail[]> {
   const res = await api.v1.groups[":id"].subjects.$get({ param: { id: groupId } });
-  return ok<SubjectDetail[]>(res);
+  const data = await ok<{ items: SubjectDetail[] }>(res);
+  return data.items;
 }
 
 /** Crea una materia en el grupo (admin-06). */
