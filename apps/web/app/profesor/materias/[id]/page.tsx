@@ -2,7 +2,7 @@
 
 import { Plus } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { use, useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/button";
 import { DataTable, TableActions, TableCell, TableRow } from "@/components/data-table";
 import { EmptyState } from "@/components/empty-state";
@@ -14,11 +14,11 @@ import { getSubjectGuides, plural, type TeacherGuide } from "@/lib/teacher";
 /** Guías de una materia (Figma `profesor-02`): tabla con título, tema, estado,
  *  fecha, acciones (editar, publicar, borrar) y botón para subir una nueva guía.
  */
-export default function MateriaGuías() {
+export default function MateriaGuías({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const subjectId = searchParams.get("subjectId") || "";
+  const { id: subjectId } = use(params);
   const materiaName = searchParams.get("materiaName") || "";
 
   const [q, setQ] = useState("");

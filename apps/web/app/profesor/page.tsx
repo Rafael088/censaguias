@@ -1,6 +1,7 @@
 "use client";
 
 import { BookOpen, FileText } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/button";
 import { DataTable, TableActions, TableCell, TableRow } from "@/components/data-table";
@@ -19,6 +20,7 @@ import {
  *  recientes.
  */
 export default function ProfesorInicio() {
+  const router = useRouter();
   const [overview, setOverview] = useState<{
     subjects: TeacherSubject[];
     recentGuides: TeacherRecentGuide[];
@@ -130,8 +132,8 @@ export default function ProfesorInicio() {
                       {
                         label: "Ver guías",
                         onClick: () => {
-                          // Navega a las guías de esta materia
-                          window.location.href = `/profesor/materias/${materia.id}`;
+                          // Navega a las guías de esta materia (ruta dinámica con params)
+                          router.push(`/profesor/materias/${materia.id}?materiaName=${encodeURIComponent(materia.name)}`);
                         },
                       },
                     ]}

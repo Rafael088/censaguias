@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { use, useState, type FormEvent } from "react";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { Button } from "@/components/button";
 import { Field } from "@/components/field";
@@ -13,11 +13,11 @@ import { createGuide, plural, validateGuideForm, type TeacherGuideFormValues } f
 /** Subir una guía (Figma `profesor-03`): tema, título, descripción, estado
  *  (borrador o publicada) y el archivo PDF (máx. 10 MB).
  */
-export default function SubirGuía() {
+export default function SubirGuía({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const subjectId = searchParams.get("subjectId") || "";
+  const { id: subjectId } = use(params);
   const materiaName = searchParams.get("materiaName") || "";
 
   const [topic, setTopic] = useState("");
