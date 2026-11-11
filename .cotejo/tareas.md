@@ -23,4 +23,4 @@
 - [ ] Revisar lo importado: resúmenes, temas y fichas #medio ^cotejo-bdfcqn
 - [x] v0.1.0 · API-06b Materias del profesor: GET /v1/teacher/subjects con sus grupos y el número de guías. Es lo único que falta de API-06 y lo necesita WEB-07. Issue #8 #facil #v0.1.0 #agente/mimo — 2026-11-03 ^cotejo-8kozh4
 - [ ] v0.1.0 · API-05b Límite de subida en Vercel: subir un PDF de 10 MB a la API desplegada y, si Vercel lo corta, pasar a subida firmada (ADR 0005). Depende de INF-02. Issue #7 #medio #v0.1.0 ^cotejo-rgsj6s
-- [ ] v0.1.0 · WEB-02b Estudiante con datos reales: conectar lib/student.ts a las rutas de API-07 con hc<AppType> y borrar student-demo.ts; hoy las pantallas del estudiante enseñan los datos de muestra del Figma. Depende de API-07. Issue #13 #facil #v0.1.0 ^cotejo-4483mq
+- [x] v0.1.0 · WEB-02b Estudiante con datos reales: conectar lib/student.ts a las rutas de API-07 con hc<AppType> y borrar student-demo.ts; hoy las pantallas del estudiante enseñan los datos de muestra del Figma. Depende de API-07. Issue #13 #facil #v0.1.0 — 2026-11-10 ^cotejo-4483mq
