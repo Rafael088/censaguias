@@ -54,7 +54,7 @@ Contrato del MVP. ✅ = ya existe en el código.
 |---|---|---|---|
 | `GET /health` ✅ | todos | Ping | — |
 | `POST /v1/access` ✅ | público | Canjea el código → cookie + `{ group }` | acceso-estudiante |
-| `DELETE /v1/access` ✅ | estudiante | Salir / cambiar código | estudiante-06 |
+| `DELETE /v1/access` ✅ | estudiante | Cerrar la sesión del grupo. La web ya no lo usa: se eliminó la opción de cambiar código | estudiante-06 (fuera) |
 | `POST /v1/auth/login` ✅ | público | Usuario + contraseña → tokens de Supabase | acceso-staff |
 | `GET /v1/me` ✅ | staff | Perfil, rol y, si es profesor, sus materias | cabecera |
 | `GET /v1/student/group` ✅ | estudiante | Grupo, materias (docente, nº de guías publicadas) y últimas guías | estudiante-01, 05 |

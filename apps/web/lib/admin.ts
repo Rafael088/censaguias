@@ -189,3 +189,91 @@ export async function deleteGroup(id: string): Promise<void> {
   if (status === 401 || status === 403) throw new NoStaffSession();
   if (status >= 400) throw await apiError(res);
 }
+
+// ---------- Materias de un grupo (WEB-05) ----------
+
+export interface SubjectDetail {
+  id: string;
+  name: string;
+  description: string | null;
+  teacher: { id: string; fullName: string } | null;
+  publishedGuides: number;
+}
+
+export interface TeacherOption {
+  id: string;
+  fullName: string;
+}
+
+export interface SubjectFormValues {
+  name: string;
+  description: string;
+  teacherId: string;
+}
+
+export interface SubjectFormErrors {
+  name?: string;
+  teacherId?: string;
+}
+
+export function validateSubjectForm(values: SubjectFormValues, teachers: TeacherOption[]): {
+  errors: SubjectFormErrors;
+  input: { name: string; description: string | null; teacherId: string } | null;
+} {
+  const errors: SubjectFormErrors = {};
+  const name = values.name.trim();
+  const description = values.description.trim() || null;
+  const teacherId = values.teacherId || null;
+
+  if (!name) errors.name = "Escribe el nombre de la materia.";
+  else if (name.length < 2) errors.name = "El nombre es muy corto.";
+  else if (name.length > 80) errors.name = "El nombre es demasiado largo (máx. 80 caracteres).";
+
+  if (!teacherId) errors.teacherId = "Selecciona un docente.";
+  else if (!teachers.some((t) => t.id === teacherId)) errors.teacherId = "Ese docente no existe.";
+
+  if (errors.name || errors.teacherId) return { errors, input: null };
+  return { errors, input: { name, description, teacherId: teacherId! } };
+}
+
+/** Lista las materias de un grupo con su docente y guías publicadas (admin-05). */
+export async function listSubjects(groupId: string): Promise<SubjectDetail[]> {
+  const res = await api.v1.groups[":id"].subjects.$get({ param: { id: groupId } });
+  return ok<SubjectDetail[]>(res);
+}
+
+/** Crea una materia en el grupo (admin-06). */
+export async function createSubject(groupId: string, input: { name: string; description: string | null; teacherId: string }): Promise<SubjectDetail> {
+  const res = await api.v1.groups[":id"].subjects.$post({
+    param: { id: groupId },
+    json: { name: input.name, description: input.description ?? undefined, teacherId: input.teacherId },
+  });
+  return ok<SubjectDetail>(res);
+}
+
+/** Edita el nombre y/o la descripción de una materia (admin-07). */
+export async function updateSubject(subjectId: string, input: { name?: string; description?: string | null }): Promise<SubjectDetail> {
+  const res = await api.v1.subjects[":id"].$patch({ param: { id: subjectId }, json: input });
+  return ok<SubjectDetail>(res);
+}
+
+/** Asigna o cambia el docente de una materia; null la deja sin docente (admin-07). */
+export async function assignSubjectTeacher(subjectId: string, teacherId: string | null): Promise<SubjectDetail> {
+  const res = await api.v1.subjects[":id"].teachers.$put({ param: { id: subjectId }, json: { teacherId } });
+  return ok<SubjectDetail>(res);
+}
+
+/** Elimina una materia (admin-07). */
+export async function deleteSubject(subjectId: string): Promise<void> {
+  const res = await api.v1.subjects[":id"].$delete({ param: { id: subjectId } });
+  const status: number = res.status;
+  if (status === 401 || status === 403) throw new NoStaffSession();
+  if (status >= 400) throw await apiError(res);
+}
+
+/** Lista los profesores para asignar a una materia. */
+export async function listTeachers(): Promise<TeacherOption[]> {
+  const res = await api.v1.teachers.$get({ query: {} });
+  const data = (await res.json()) as { items: { id: string; fullName: string }[]; total: number };
+  return data.items.map((t) => ({ id: t.id, fullName: t.fullName }));
+}
