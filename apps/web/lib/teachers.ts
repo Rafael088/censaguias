@@ -1,28 +1,52 @@
 /**
  * Capa de datos del área de profesores (WEB-06).
  *
- * TODO(API-08): la API todavía no expone `/v1/teachers` (lista con `q` y
- * página, `POST` para registrar, `GET/PATCH/DELETE /:id` y `POST /:id/password`).
- * Mientras tanto, estas funciones sirven los datos de muestra del Figma
- * (`teachers-demo.ts`), igual que hace `student.ts` con API-07.
+ * Todas las llamadas pasan por el cliente tipado `api` (hc<AppType>, ADR 0002):
+ * rutas y respuestas salen del tipo de Hono, no se escriben dos veces.
  *
- * Al entrar API-08: borra `teachers-demo.ts` y sustituye el cuerpo de cada
- * función por `hc<AppType>()` (ADR 0002). Las páginas no cambian: solo llaman
- * aquí. La sesión no se comprueba en este archivo: ya la vigila `<StaffShell>`
- * con `GET /v1/me`, que manda a `/ingresar` si no la hay.
+ * Rutas usadas:
+ *   GET /v1/teachers          - lista con búsqueda y paginación (admin-08)
+ *   POST /v1/teachers         - registrar con contraseña temporal (admin-09)
+ *   GET /v1/teachers/:id      - detalle con asignaciones (admin-09)
+ *   PATCH /v1/teachers/:id    - editar nombre y usuario (admin-09)
+ *   DELETE /v1/teachers/:id   - eliminar con confirmación (admin-10)
+ *   POST /v1/teachers/:id/password - restablecer contraseña temporal (admin-09)
+ *   PUT /v1/subjects/:id/teachers - asignar o quitar docente de una materia (admin-09)
+ *
+ * La sesión la vigila <StaffShell> (requireStaff("admin")).
  */
 
-import { SHIFT_LABEL, type Shift } from "@censaguias/shared";
-import { DEMO_GROUPS, DEMO_SLOTS, readTeachers, writeTeachers } from "./teachers-demo";
+import { api } from "./api";
+import { NoStaffSession } from "./admin";
 
-/** La lista de admin-08 cabe en una página; el total se devuelve siempre. */
-export const TEACHERS_PAGE_SIZE = 12;
+/** El mensaje de la API (`{ error }`) o el status, para mostrarlo en el aviso. */
+async function apiError(res: Response): Promise<Error> {
+  let message = `La API respondió ${res.status}`;
+  try {
+    const body = (await res.json()) as { error?: string };
+    if (body?.error) message = body.error;
+  } catch {
+    // Sin cuerpo JSON: se queda el mensaje genérico.
+  }
+  return new Error(message);
+}
+
+/** Las respuestas de la API son uniones por status; esto devuelve la del 200 o lanza. */
+async function ok<T>(res: Response): Promise<T> {
+  if (res.status === 401 || res.status === 403) throw new NoStaffSession();
+  if (!res.ok) throw await apiError(res);
+  return (await res.json()) as T;
+}
+
+// ---------- Tipos del front ----------
 
 export interface TeacherGroupRef {
   id: string;
   /** «CLEI IV · A» */
   label: string;
-  shift: Shift;
+  shift: string;
+  /** «Mañana» */
+  shiftLabel: string;
   /** «CENSA-4AM-K7Q» */
   accessCode: string;
 }
@@ -112,13 +136,10 @@ export function teacherGroups(teacher: AdminTeacher): TeacherGroupRef[] {
 
 /** «CLEI IV · A / Mañana»: la celda «Grupos asignados» de admin-08. */
 export function groupLines(teacher: AdminTeacher): string[] {
-  return teacherGroups(teacher).map((group) => `${group.label} / ${SHIFT_LABEL[group.shift]}`);
+  return teacherGroups(teacher).map((group) => `${group.label} / ${group.shiftLabel}`);
 }
 
-/**
- * «sus 2 asignaciones de Matemáticas en CLEI IV · A y CLEI V · B» (admin-10).
- * El número, las materias y los grupos salen de los datos, no están escritos a mano.
- */
+/** «sus 2 asignaciones de Matemáticas en CLEI IV · A y CLEI V · B» (admin-10). */
 export function deleteDescription(teacher: AdminTeacher): string {
   const n = teacher.assignments.length;
   if (n === 0) return "Se eliminará su usuario. No tiene asignaciones de materias.";
@@ -128,10 +149,7 @@ export function deleteDescription(teacher: AdminTeacher): string {
   return `Se eliminará su usuario y ${numero} de ${subjects} en ${groups}.`;
 }
 
-/**
- * «2 asignaciones. Laura solo puede gestionar guías de Matemáticas en CLEI IV · A
- * y CLEI V · B.» (pie de la tabla de admin-09).
- */
+/** «2 asignaciones. Laura solo puede gestionar guías de Matemáticas en CLEI IV · A y CLEI V · B.» */
 export function assignmentsSummary(teacher: AdminTeacher): string {
   const n = teacher.assignments.length;
   if (n === 0) return "Sin asignaciones todavía. Añade una materia para que este docente gestione guías.";
@@ -191,52 +209,73 @@ export function validateProfileForm(values: { fullName: string; username: string
   return { errors, input: { fullName, username } };
 }
 
-// ---------- Llamadas (hoy: almacén de muestra; con API-08: hc<AppType>()) ----------
+// ---------- Llamadas a la API ----------
 
-/** Lista de admin-08: busca por nombre o usuario y pagina en el cliente. */
+/** La lista de admin-08 cabe en una página; el total se devuelve siempre. */
+export const TEACHERS_PAGE_SIZE = 12;
+
+/** Lista de admin-08: busca por nombre o usuario y pagina. */
 export async function listTeachers(filters: { q?: string; page?: number } = {}): Promise<TeacherListPage> {
-  const query = (filters.q ?? "").trim().toLowerCase();
-  const todos = readTeachers();
-  const filtrados = query
-    ? todos.filter(
-        (teacher) =>
-          teacher.fullName.toLowerCase().includes(query) || teacher.username.toLowerCase().includes(query),
-      )
-    : todos;
-
-  const pageSize = TEACHERS_PAGE_SIZE;
-  const total = filtrados.length;
-  const pages = Math.max(1, Math.ceil(total / pageSize));
-  const page = Math.min(Math.max(1, filters.page ?? 1), pages);
-  const desde = (page - 1) * pageSize;
-
-  return { items: filtrados.slice(desde, desde + pageSize), total, page, pageSize };
+  const res = await api.v1.teachers.$get({ query: { q: filters.q ?? undefined, page: String(filters.page ?? 1) } });
+  const data = await ok<{
+    items: { id: string; username: string; fullName: string; active: boolean; subjects: string[]; groups: string[] }[];
+    total: number;
+    activeCount: number;
+    page: number;
+    pageSize: number;
+  }>(res);
+  // La API devuelve subjects y groups como strings; las asignaciones detalladas se cargan en el detalle.
+  return {
+    items: data.items.map((t) => ({
+      id: t.id,
+      fullName: t.fullName,
+      username: t.username,
+      active: t.active,
+      assignments: [], // Se cargan en el detalle (admin-09)
+    })),
+    total: data.total,
+    page: data.page,
+    pageSize: data.pageSize,
+  };
 }
 
 /** Trae un profesor por id (para el detalle). Devuelve null si no existe. */
 export async function getTeacher(id: string): Promise<AdminTeacher | null> {
-  return readTeachers().find((teacher) => teacher.id === id) ?? null;
+  const res = await api.v1.teachers[":id"].$get({ param: { id } });
+  if (res.status === 404) return null;
+  const data = await ok<{
+    id: string;
+    username: string;
+    fullName: string;
+    active: boolean;
+    assignments: { subject: { id: string; name: string }; group: { id: string; label: string; shift: string; shiftLabel: string; accessCode: string } }[];
+  }>(res);
+  return {
+    id: data.id,
+    fullName: data.fullName,
+    username: data.username,
+    active: data.active,
+    assignments: data.assignments.map((a) => ({
+      id: `asig-${a.subject.id}-${a.group.id}`,
+      subject: { id: a.subject.id, name: a.subject.name },
+      group: {
+        id: a.group.id,
+        label: a.group.label,
+        shift: a.group.shift,
+        shiftLabel: a.group.shiftLabel,
+        accessCode: a.group.accessCode,
+      },
+    })),
+  };
 }
 
-/**
- * Registra al profesor: usuario institucional + contraseña temporal.
- * El usuario es único (la API respondería 409 con el mismo mensaje).
- */
+/** Registra al profesor: usuario institucional + contraseña temporal. */
 export async function createTeacher(input: TeacherInput): Promise<AdminTeacher> {
-  const username = input.username.trim().toLowerCase();
-  if (readTeachers().some((teacher) => teacher.username === username)) {
-    throw new Error("Ese usuario institucional ya está registrado. Elige otro.");
-  }
-
-  const teacher: AdminTeacher = {
-    id: username,
-    fullName: input.fullName.trim(),
-    username,
-    active: true,
-    assignments: [],
-  };
-  writeTeachers([...readTeachers(), teacher]);
-  return teacher;
+  const res = await api.v1.teachers.$post({
+    json: { fullName: input.fullName, username: input.username, temporaryPassword: input.temporaryPassword },
+  });
+  const data = await ok<{ id: string; username: string; fullName: string; active: boolean }>(res);
+  return { id: data.id, fullName: data.fullName, username: data.username, active: data.active, assignments: [] };
 }
 
 /** Guarda nombre y usuario desde el detalle. */
@@ -244,95 +283,72 @@ export async function updateTeacher(
   id: string,
   input: { fullName: string; username: string },
 ): Promise<AdminTeacher> {
-  const todos = readTeachers();
-  const actual = todos.find((teacher) => teacher.id === id);
-  if (!actual) throw new Error("No encontramos al profesor.");
-
-  const username = input.username.trim().toLowerCase();
-  if (todos.some((teacher) => teacher.id !== id && teacher.username === username)) {
-    throw new Error("Ese usuario institucional ya está registrado. Elige otro.");
-  }
-
-  const actualizado: AdminTeacher = { ...actual, fullName: input.fullName.trim(), username };
-  writeTeachers(todos.map((teacher) => (teacher.id === id ? actualizado : teacher)));
-  return actualizado;
+  const res = await api.v1.teachers[":id"].$patch({ param: { id }, json: { fullName: input.fullName, username: input.username } });
+  const data = await ok<{ id: string; username: string; fullName: string; active: boolean }>(res);
+  return { id: data.id, fullName: data.fullName, username: data.username, active: data.active, assignments: [] };
 }
 
 /** Elimina al profesor. Sus materias quedan sin docente (la API pone teacher_id en null). */
 export async function deleteTeacher(id: string): Promise<void> {
-  writeTeachers(readTeachers().filter((teacher) => teacher.id !== id));
+  const res = await api.v1.teachers[":id"].$delete({ param: { id } });
+  const status: number = res.status;
+  if (status === 401 || status === 403) throw new NoStaffSession();
+  if (status >= 400) throw await apiError(res);
 }
 
-/** Contraseña temporal nueva (POST /v1/teachers/:id/password): solo se enseña una vez. */
+/** Contraseña temporal nueva (POST /v1/teachers/:id/password): el front genera
+ *  la contraseña y la envía; la API solo la aplica. Solo se enseña una vez. */
 export async function resetTeacherPassword(id: string): Promise<string> {
-  if (!readTeachers().some((teacher) => teacher.id === id)) throw new Error("No encontramos al profesor.");
-  return randomTemporaryPassword();
+  const password = randomTemporaryPassword();
+  const res = await api.v1.teachers[":id"].password.$post({ param: { id }, json: { password } });
+  await ok(res);
+  return password;
 }
 
-/**
- * Materias a las que se puede asignar al docente, con su etiqueta para el
- * selector. Si otra persona la tiene, al asignarla se reasigna (PUT /v1/subjects/:id/teachers).
- */
+// ---------- Asignaciones de materias ----------
+
+/** Materias a las que se puede asignar al docente (admin-09). */
 export async function availableSlots(teacherId: string): Promise<SubjectSlot[]> {
-  const teacher = readTeachers().find((t) => t.id === teacherId);
+  const res = await api.v1.subjects.$get({ query: {} });
+  const data = await ok<{ items: { id: string; name: string; group_id: string; teacher_id: string | null }[] }>(res);
+  const teacher = await getTeacher(teacherId);
   const mias = new Set(teacher?.assignments.map((assignment) => assignment.subject.id) ?? []);
-  return DEMO_SLOTS.filter((slot) => !mias.has(slot.id)).map((slot) => {
-    const group = DEMO_GROUPS.find(({ id }) => id === slot.groupId);
-    return {
+  return data.items
+    .filter((slot) => !mias.has(slot.id) && slot.teacher_id === null)
+    .map((slot) => ({
       id: slot.id,
-      groupId: slot.groupId,
+      groupId: slot.group_id,
       name: slot.name,
-      label: group ? `${group.label} · ${SHIFT_LABEL[group.shift]} — ${slot.name}` : slot.name,
-    };
-  });
+      label: slot.name,
+    }));
 }
 
-/** Asigna la materia al docente (la añade o se la quita a quien la tenía). */
+/** Asigna la materia al docente (PUT /v1/subjects/:id/teachers). */
 export async function assignSlot(teacherId: string, slotId: string): Promise<AdminTeacher> {
-  const slot = DEMO_SLOTS.find(({ id }) => id === slotId);
-  const group = DEMO_GROUPS.find(({ id }) => id === slot?.groupId);
-  if (!slot || !group) throw new Error("Esa materia ya no existe.");
-
-  const todos = readTeachers();
-  const actual = todos.find((teacher) => teacher.id === teacherId);
-  if (!actual) throw new Error("No encontramos al profesor.");
-  if (actual.assignments.some((assignment) => assignment.subject.id === slotId)) return actual;
-
-  const nueva: TeacherAssignment = {
-    id: `asig-${teacherId}-${slotId}`,
-    subject: { id: slot.id, name: slot.name },
-    group: { id: group.id, label: group.label, shift: group.shift, accessCode: group.accessCode },
+  const res = await api.v1.subjects[":id"].teachers.$put({ param: { id: slotId }, json: { teacherId } });
+  const data = await ok<{ id: string; fullName: string; username: string; active: boolean; assignments: TeacherAssignment[] }>(res);
+  return {
+    id: data.id,
+    fullName: data.fullName,
+    username: data.username,
+    active: data.active,
+    assignments: data.assignments,
   };
-
-  const siguiente = todos.map((teacher) => {
-    if (teacher.id === teacherId) return { ...teacher, assignments: [...teacher.assignments, nueva] };
-    // Una materia tiene un solo docente: si otro la tenía, queda sin ella.
-    return { ...teacher, assignments: teacher.assignments.filter((a) => a.subject.id !== slotId) };
-  });
-  writeTeachers(siguiente);
-  return siguiente.find((teacher) => teacher.id === teacherId) ?? actual;
 }
 
 /** Quita la asignación al docente: la materia queda sin docente. */
 export async function unassign(teacherId: string, assignmentId: string): Promise<AdminTeacher> {
-  const todos = readTeachers();
-  const actual = todos.find((teacher) => teacher.id === teacherId);
-  if (!actual) throw new Error("No encontramos al profesor.");
-
-  const siguiente = todos.map((teacher) =>
-    teacher.id === teacherId
-      ? { ...teacher, assignments: teacher.assignments.filter((a) => a.id !== assignmentId) }
-      : teacher,
-  );
-  writeTeachers(siguiente);
-  return siguiente.find((teacher) => teacher.id === teacherId) ?? actual;
+  const teacher = await getTeacher(teacherId);
+  const assignment = teacher?.assignments.find((a) => a.id === assignmentId);
+  if (!assignment) throw new Error("No encontramos la asignación.");
+  await api.v1.subjects[":id"].teachers.$put({ param: { id: assignment.subject.id }, json: { teacherId: null } });
+  const actualizado = await getTeacher(teacherId);
+  if (!actualizado) throw new Error("No encontramos al profesor.");
+  return actualizado;
 }
 
-/**
- * Contraseña temporal de 12 caracteres sin ambiguos (ni I/l/1 ni O/0), como el
- * código de acceso del ADR 0004. Solo se genera: no se guarda ni se vuelve a mostrar.
- */
-function randomTemporaryPassword(): string {
+/** Contraseña temporal de 12 caracteres sin ambiguos (no se usa: la API la genera). */
+export function randomTemporaryPassword(): string {
   const alphabet = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
   const bytes = new Uint32Array(12);
   crypto.getRandomValues(bytes);
