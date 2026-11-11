@@ -1,20 +1,36 @@
 /**
- * Capa de datos del espacio estudiante (WEB-02).
+ * Capa de datos del espacio estudiante (WEB-02b).
  *
- * TODO(API-07): la API todavía no expone las rutas de estudiante de
- * docs/ARQUITECTURA.md (`GET /v1/student/group`,
- * `GET /v1/student/subjects/:id/guides`, `GET /v1/student/guides/:id` y
- * `GET /v1/guides/:id/file`). `probeApi()` comprueba si existen: si no, estas
- * funciones devuelven los datos de muestra del Figma (`student-demo.ts`) para
- * que las pantallas se puedan construir y revisar hoy mismo.
+ * Todas las llamadas pasan por el cliente tipado `api` (hc<AppType>, ADR 0002):
+ * rutas y respuestas salen del tipo de Hono, no se escriben dos veces.
  *
- * Al entrar API-07: borra `student-demo.ts` y `apiDisponible`, y ajusta cada
- * `map*` contra la respuesta real (idealmente con `hc<AppType>` de
- * apps/web/lib/api.ts, según ADR 0002). Las páginas no cambian: solo llaman a
- * estas funciones. La guardia de sesión (401 → `/`) ya está escrita.
+ * Rutas usadas: GET /v1/student/group, GET /v1/student/subjects/:id/guides,
+ * GET /v1/student/guides/:id y GET /v1/guides/:id/file. La sesión del estudiante
+ * viaja por cookie; el cliente de Hono la reenvía con `credentials: "include"`.
+ *
+ * Las respuestas de la API se mapean a los tipos del front: el backend devuelve
+ * `teacher: { fullName } | null` y `group` con campos completos; el front usa
+ * `teacher: string | null` y `StudentGroup` con label, shift, schoolYear y code.
  */
 
-import { DEMO_GUIDES, DEMO_GROUP, DEMO_SUBJECTS } from "./student-demo";
+import { api } from "./api";
+
+/** 401: no hay sesión (o el código cambió). La pantalla redirige al acceso. */
+export class NoSessionError extends Error {
+  constructor() {
+    super("Sin sesión de estudiante");
+    this.name = "NoSessionError";
+  }
+}
+
+/** Devuelve el JSON de una respuesta 200, o lanza NoSessionError / Error. */
+async function ok<T>(res: Response): Promise<T> {
+  if (res.status === 401) throw new NoSessionError();
+  if (!res.ok) throw new Error(`La API respondió ${res.status}`);
+  return (await res.json()) as T;
+}
+
+// ---------- Tipos del front (mantenidos para que las páginas no cambien) ----------
 
 export interface StudentGroup {
   /** «CLEI IV · A» */
@@ -68,56 +84,145 @@ export interface StudentSubjectDetail {
   topics: string[];
 }
 
-/** 401: no hay sesión (o el código cambió). La pantalla redirige al acceso. */
-export class NoSessionError extends Error {
-  constructor() {
-    super("Sin sesión de estudiante");
-    this.name = "NoSessionError";
-  }
+/** Mapea el grupo de la API al tipo del front. */
+function mapGroup(g: { label: string; shift: string; schoolYear: number; accessCode: string }): StudentGroup {
+  return { label: g.label, shift: g.shift, schoolYear: g.schoolYear, code: g.accessCode };
 }
 
-/** La ruta todavía no existe en la API: se usan los datos de muestra. */
-let apiDisponible: boolean | null = null;
-
-async function probeApi(): Promise<boolean> {
-  if (apiDisponible !== null) return apiDisponible;
-  try {
-    const res = await fetch("/api/v1/student/group", { credentials: "include" });
-    // 200 (hay sesión) o 401 (la ruta existe y no la hay): en ambos la API está levantada.
-    if (res.ok || res.status === 401) {
-      apiDisponible = true;
-      return true;
-    }
-  } catch {
-    // Next no pudo reenviar a la API: se asume que aún no expone estas rutas.
-  }
-  apiDisponible = false;
-  console.warn("[WEB-02] La API no expone todavía /v1/student/*: se usan datos de muestra (TODO · API-07).");
-  return false;
+/** Mapea una materia de la API al tipo del front. */
+function mapSubject(s: { id: string; name: string; description: string | null; teacher: { fullName: string } | null; publishedGuides: number }): StudentSubject {
+  return {
+    id: s.id,
+    name: s.name,
+    description: s.description,
+    teacher: s.teacher?.fullName ?? null,
+    guideCount: s.publishedGuides,
+  };
 }
 
-async function getJson<T>(path: string): Promise<T | null> {
-  const res = await fetch(path, { credentials: "include" });
-  if (res.status === 401) throw new NoSessionError();
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`La API respondió ${res.status} en ${path}`);
-  // TODO(API-07): confirma los campos contra la respuesta real y sustituye esto por hc<AppType>().
-  return (await res.json()) as T;
+/** Mapea una guía de la API al tipo del front. */
+function mapGuide(g: {
+  id: string;
+  topic: string;
+  title: string;
+  description: string;
+  publishedAt: string;
+  fileName: string;
+  sizeBytes: number;
+  pageCount: number | null;
+  subject: { id: string; name: string };
+  teacher: string | null;
+}): StudentGuide {
+  return {
+    id: g.id,
+    topic: g.topic,
+    title: g.title,
+    description: g.description,
+    publishedAt: g.publishedAt,
+    fileName: g.fileName,
+    sizeBytes: g.sizeBytes,
+    pageCount: g.pageCount,
+    subject: g.subject,
+    teacher: g.teacher,
+  };
 }
 
+// ---------- Llamadas a la API ----------
+
+/** Mis materias y Mi grupo: el grupo, sus materias con docente y recuento, y las
+ *  últimas guías publicadas del grupo (pantallas estudiante-01 y estudiante-05). */
 export async function getStudentOverview(): Promise<StudentOverview | null> {
-  if (!(await probeApi())) return demoOverview();
-  return getJson<StudentOverview>("/api/v1/student/group");
+  try {
+    const res = await api.v1.student.group.$get();
+    if (res.status === 401) throw new NoSessionError();
+    if (!res.ok) throw new Error(`La API respondió ${res.status}`);
+    const data = await res.json();
+    return {
+      group: mapGroup(data.group),
+      subjects: data.subjects.map(mapSubject),
+      latestGuides: data.recentGuides.map((g: { id: string; topic: string; title: string; publishedAt: string | null; fileName: string; sizeBytes: number; subject: { id: string; name: string | null } }) => ({
+        id: g.id,
+        topic: g.topic,
+        title: g.title,
+        description: "",
+        publishedAt: g.publishedAt ?? "",
+        fileName: g.fileName,
+        sizeBytes: g.sizeBytes,
+        pageCount: null,
+        subject: { id: g.subject.id, name: g.subject.name ?? "" },
+        teacher: null,
+      })),
+      guideCount: data.totalPublishedGuides,
+    };
+  } catch (err) {
+    if (err instanceof NoSessionError) throw err;
+    console.warn("[WEB-02b] No se pudo cargar el grupo del estudiante:", err);
+    return null;
+  }
 }
 
+/** Guías de una materia con resumen (pantalla estudiante-02). */
 export async function getStudentSubject(id: string): Promise<StudentSubjectDetail | null> {
-  if (!(await probeApi())) return demoSubject(id);
-  return getJson<StudentSubjectDetail>(`/api/v1/student/subjects/${id}/guides`);
+  try {
+    const res = await api.v1.student.subjects[":id"].guides.$get({ param: { id }, query: {} });
+    if (res.status === 401) throw new NoSessionError();
+    if (!res.ok) throw new Error(`La API respondió ${res.status}`);
+    const data = await res.json();
+    return {
+      subject: {
+        id: data.subject.id,
+        name: data.subject.name,
+        description: data.subject.description,
+        teacher: data.subject.teacher?.fullName ?? null,
+        guideCount: data.total,
+      },
+      group: mapGroup(data.subject.group),
+      guides: data.items.map((g: { id: string; subjectId: string; topic: string; title: string; description: string; publishedAt: string | null; fileName: string; sizeBytes: number; pageCount: number | null }) => ({
+        id: g.id,
+        topic: g.topic,
+        title: g.title,
+        description: g.description,
+        publishedAt: g.publishedAt ?? "",
+        fileName: g.fileName,
+        sizeBytes: g.sizeBytes,
+        pageCount: g.pageCount,
+        subject: { id: g.subjectId, name: data.subject.name },
+        teacher: null,
+      })),
+      topics: data.topics,
+    };
+  } catch (err) {
+    if (err instanceof NoSessionError) throw err;
+    console.warn("[WEB-02b] No se pudo cargar la materia del estudiante:", err);
+    return null;
+  }
 }
 
+/** Detalle de una guía publicada (pantalla estudiante-03). */
 export async function getStudentGuide(id: string): Promise<(StudentGuide & { group: StudentGroup }) | null> {
-  if (!(await probeApi())) return demoGuide(id);
-  return getJson<StudentGuide & { group: StudentGroup }>(`/api/v1/student/guides/${id}`);
+  try {
+    const res = await api.v1.student.guides[":id"].$get({ param: { id } });
+    if (res.status === 401) throw new NoSessionError();
+    if (!res.ok) throw new Error(`La API respondió ${res.status}`);
+    const data = await res.json();
+    return {
+      id: data.id,
+      topic: data.topic,
+      title: data.title,
+      description: data.description,
+      publishedAt: data.publishedAt ?? "",
+      fileName: data.fileName,
+      sizeBytes: data.sizeBytes,
+      pageCount: data.pageCount,
+      subject: { id: data.subject.id, name: data.subject.name },
+      teacher: data.subject.teacher?.fullName ?? null,
+      group: mapGroup(data.subject.group),
+    };
+  } catch (err) {
+    if (err instanceof NoSessionError) throw err;
+    console.warn("[WEB-02b] No se pudo cargar la guía del estudiante:", err);
+    return null;
+  }
 }
 
 /** URL firmada de 60 s para abrir o descargar el PDF. */
@@ -125,38 +230,15 @@ export async function getStudentGuideFile(
   id: string,
   download: boolean,
 ): Promise<{ url: string; fileName: string } | null> {
-  if (!(await probeApi())) {
-    const guide = DEMO_GUIDES.find((g) => g.id === id);
-    return guide ? { url: `/muestras/${guide.fileName}`, fileName: guide.fileName } : null;
+  try {
+    const res = await api.v1.guides[":id"].file.$get({ param: { id } });
+    if (res.status === 401) throw new NoSessionError();
+    if (!res.ok) throw new Error(`La API respondió ${res.status}`);
+    const data = await res.json();
+    return { url: data.url, fileName: data.fileName };
+  } catch (err) {
+    if (err instanceof NoSessionError) throw err;
+    console.warn("[WEB-02b] No se pudo obtener el archivo de la guía:", err);
+    return null;
   }
-  return getJson<{ url: string; fileName: string }>(
-    `/api/v1/guides/${id}/file${download ? "?download=1" : ""}`,
-  );
-}
-
-// ---------- Datos de muestra (sustituidos por API-07) ----------
-
-function demoOverview(): StudentOverview {
-  return {
-    group: DEMO_GROUP,
-    subjects: DEMO_SUBJECTS,
-    latestGuides: DEMO_GUIDES.slice().sort((a, b) => b.publishedAt.localeCompare(a.publishedAt)),
-    guideCount: DEMO_GUIDES.length,
-  };
-}
-
-function demoSubject(id: string): StudentSubjectDetail | null {
-  const subject = DEMO_SUBJECTS.find((s) => s.id === id);
-  if (!subject) return null;
-  const guides = DEMO_GUIDES.filter((g) => g.subject.id === id).sort((a, b) =>
-    b.publishedAt.localeCompare(a.publishedAt),
-  );
-  const topics: string[] = [];
-  for (const guide of guides) if (!topics.includes(guide.topic)) topics.push(guide.topic);
-  return { subject, group: DEMO_GROUP, guides, topics };
-}
-
-function demoGuide(id: string) {
-  const guide = DEMO_GUIDES.find((g) => g.id === id);
-  return guide ? { ...guide, group: DEMO_GROUP } : null;
 }
