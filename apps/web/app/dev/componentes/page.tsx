@@ -1,7 +1,8 @@
 "use client";
 
 import { BookOpen, FlaskConical, LogOut, Users } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { BottomNav } from "@/components/bottom-nav";
 import { Button } from "@/components/button";
 import { DataTable, TableActions, TableCell, TableRow } from "@/components/data-table";
@@ -42,7 +43,22 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
+/** Esta galería de componentes solo está disponible en desarrollo local.
+ *  En producción se redirige al inicio para no exponerla al público. */
 export default function ComponentesPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "development") {
+      router.replace("/");
+    }
+  }, [router]);
+
+  // En producción no se renderiza nada: la redirección arriba se encarga de sacar al usuario.
+  if (process.env.NODE_ENV !== "development") {
+    return null;
+  }
+
   const [tab, setTab] = useState("todas");
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -151,11 +167,7 @@ export default function ComponentesPage() {
             <TableCell className="font-semibold">CENSA-4AM-26</TableCell>
             <TableCell>
               <TableActions
-                actions={[
-                  { label: "Ver", onClick: () => {} },
-                  { label: "Editar", onClick: () => {} },
-                  { label: "Eliminar", onClick: () => {} },
-                ]}
+                actions={[ { label: "Ver", onClick: () => {} }, { label: "Editar", onClick: () => {} }, { label: "Eliminar", onClick: () => {} }]}
               />
             </TableCell>
           </TableRow>
@@ -226,10 +238,7 @@ export default function ComponentesPage() {
               <BottomNav
                 fixed={false}
                 className="absolute inset-x-0 bottom-0"
-                items={[
-                  { label: "Materias", href: "#", icon: BookOpen, active: true },
-                  { label: "Mi grupo", href: "#", icon: Users },
-                ]}
+                items={[ { label: "Materias", href: "#", icon: BookOpen, active: true }, { label: "Mi grupo", href: "#", icon: Users }]}
               />
             </div>
           </div>
