@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { use, useEffect, useState, type FormEvent } from "react";
+import { use, useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { Button } from "@/components/button";
 import { Field } from "@/components/field";
@@ -17,6 +17,11 @@ export default function EditarGuía({ params }: { params: Promise<{ id: string }
   const router = useRouter();
 
   const { id: guideId } = use(params);
+
+  const topicRef = useRef<HTMLInputElement>(null);
+  const titleRef = useRef<HTMLInputElement>(null);
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
+  const descriptionId = useId();
 
   const [guide, setGuide] = useState<TeacherGuide | null>(null);
   const [fallo, setFallo] = useState(false);
@@ -84,7 +89,13 @@ export default function EditarGuía({ params }: { params: Promise<{ id: string }
     if (!d) errores.description = "Escribe una descripción.";
     setErroresEdicion(errores);
     setErrorApi(null);
-    if (errores.topic || errores.title || errores.description) return;
+    if (errores.topic || errores.title || errores.description) {
+      // Enfocar el primer campo con error.
+      if (errores.topic) topicRef.current?.focus();
+      else if (errores.title) titleRef.current?.focus();
+      else if (errores.description) descriptionRef.current?.focus();
+      return;
+    }
 
     setGuardando(true);
     try {
@@ -194,6 +205,7 @@ export default function EditarGuía({ params }: { params: Promise<{ id: string }
               value={topic}
               error={erroresEdicion.topic}
               onChange={(event) => setTopic(event.target.value)}
+              ref={topicRef}
             />
             <Field
               label="Título *"
@@ -201,18 +213,23 @@ export default function EditarGuía({ params }: { params: Promise<{ id: string }
               value={title}
               error={erroresEdicion.title}
               onChange={(event) => setTitle(event.target.value)}
+              ref={titleRef}
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-label font-semibold text-ink">Descripción *</label>
+            <label htmlFor={descriptionId} className="text-label font-semibold text-ink">Descripción *</label>
             <textarea
+              id={descriptionId}
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               placeholder="Qué cubre esta guía y para qué sirve"
+              ref={descriptionRef}
+              aria-describedby={erroresEdicion.description ? `${descriptionId}-error` : undefined}
+              aria-invalid={erroresEdicion.description ? true : undefined}
               className={`min-h-[100px] w-full rounded-control border bg-surface px-3 py-3 text-body text-ink outline-none focus:border-2 focus:border-primary resize-none ${erroresEdicion.description ? "border-2 border-primary" : "border-line"}`}
             />
             {erroresEdicion.description && (
-              <div className="flex items-start gap-2 rounded-card border border-line bg-tint p-3 text-label text-ink">
+              <div id={`${descriptionId}-error`} role="alert" className="flex items-start gap-2 rounded-card border border-line bg-tint p-3 text-label text-ink">
                 <span>{erroresEdicion.description}</span>
               </div>
             )}
