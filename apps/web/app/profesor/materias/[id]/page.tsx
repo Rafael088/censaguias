@@ -227,17 +227,19 @@ export default function MateriaGuías({ params }: { params: Promise<{ id: string
                         {
                           label: "Editar",
                           onClick: () => {
-                            window.location.href = `/profesor/guias/${guia.id}`;
+                            router.push(`/profesor/guias/${guia.id}`);
                           },
                         },
-                        {
-                          label:
-                            guia.status === "published" ? "Despublicar" : "Publicar",
-                          onClick: () => {
-                            // Usamos la acción de publicar; para despublicar cambiaríamos el estado
-                            window.location.href = `/profesor/guias/${guia.id}`;
-                          },
-                        },
+                        ...(guia.status === "published"
+                          ? []
+                          : [
+                              {
+                                label: "Publicar",
+                                onClick: () => {
+                                  router.push(`/profesor/guias/${guia.id}`);
+                                },
+                              },
+                            ]),
                         {
                           label: "Eliminar",
                           onClick: () => {
@@ -246,8 +248,7 @@ export default function MateriaGuías({ params }: { params: Promise<{ id: string
                                 `¿Eliminar la guía "${guia.title}"? Se borrará también su archivo PDF.`,
                               )
                             ) {
-                              // Se manejaría con una acción de borrar; por ahora navegamos al detalle
-                              window.location.href = `/profesor/guias/${guia.id}`;
+                              router.push(`/profesor/guias/${guia.id}`);
                             }
                           },
                         },

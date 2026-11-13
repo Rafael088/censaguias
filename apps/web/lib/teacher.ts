@@ -146,18 +146,26 @@ export async function getGuide(guideId: string): Promise<TeacherGuide> {
   return ok<TeacherGuide>(res);
 }
 
-/** Editar título/tema/descripción de una guía (profesor-04). */
+/** Editar título/tema/descripción de una guía (profesor-04).
+ *  Usa FormData para coincidir con el contrato de PATCH del backend,
+ *  que lee los campos de formulario (no JSON).
+ */
 export async function updateGuide(
   guideId: string,
   input: { topic?: string; title?: string; description?: string },
 ): Promise<TeacherGuide> {
+  const form = new FormData();
+  if (input.topic !== undefined) form.append("topic", input.topic);
+  if (input.title !== undefined) form.append("title", input.title);
+  if (input.description !== undefined) form.append("description", input.description);
+
   const headers = await authHeaders();
-  headers.set("Content-Type", "application/json");
+  // No se fija Content-Type: el navegador lo pone con boundary para FormData.
   const res = await fetch(`/api/v1/guides/${guideId}`, {
     headers,
     credentials: "include",
     method: "PATCH",
-    body: JSON.stringify(input),
+    body: form,
   });
   return ok<TeacherGuide>(res);
 }
