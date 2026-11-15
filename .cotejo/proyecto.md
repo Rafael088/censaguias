@@ -11,4 +11,4 @@ Plataforma educativa de CENSA: las guías en PDF de cada grupo CLEI en un solo l
 Monorepo con npm workspaces: Next.js 16 y Tailwind 4 (apps/web), Hono 4 (apps/api) y Supabase (Postgres, Auth y Storage). Reglas para los agentes en AGENTS.md; diseño en docs/diseno/. `npm run dev` arranca la web (3000) y la API (8787) a la vez.
 
 ## Siguiente paso
-Comprobar en el board API-05, API-06 y WEB-04, que ya están en main. Después: API-07 (rutas del estudiante), API-08 (profesores) y WEB-05 (detalle de grupo). INF-02 (Vercel) lo hace Rafael.
+Comprobar WEB-06b en el board: el PR #33 ya conectó la administración de profesores con API-08 y eliminó teachers-demo.ts. Después quedan INF-02 (despliegue en Vercel, a cargo de Rafael), API-05b (probar la subida de 10 MB desplegada) y REL-01 (aceptación y release). WEB-05, WEB-06, WEB-07, WEB-08 y WEB-02b ya fueron comprobadas.
