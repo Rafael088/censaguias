@@ -1,17 +1,19 @@
 "use client";
 
+import { Send } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { use, useId, useRef, useState, type FormEvent } from "react";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { Button } from "@/components/button";
 import { Field } from "@/components/field";
 import { Notice } from "@/components/notice";
-import { Select } from "@/components/select";
 import { ErrorScreen, LoadingScreen } from "@/components/screen-state";
 import { createGuide, plural, validateGuideForm, type TeacherGuideFormValues } from "@/lib/teacher";
 
-/** Subir una guía (Figma `profesor-03`): tema, título, descripción, estado
- *  (borrador o publicada) y el archivo PDF (máx. 10 MB).
+/** Subir una guía (Figma `profesor-03`): tema, título, descripción y el archivo PDF
+ *  (máx. 10 MB), con dos salidas —Guardar borrador y Publicar guía— en lugar del
+ *  selector de estado (WEB-07c). La que pulse el profesor es la que decide el
+ *  estado final de la guía.
  */
 export default function SubirGuía({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -29,17 +31,31 @@ export default function SubirGuía({ params }: { params: Promise<{ id: string }>
   const [topic, setTopic] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [status, setStatus] = useState<"draft" | "published">("draft");
   const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState("");
 
   const [errores, setErrores] = useState<{ topic?: string; title?: string; description?: string; status?: string; file?: string }>({});
   const [errorApi, setErrorApi] = useState<string | null>(null);
-  const [guardando, setGuardando] = useState(false);
+  /** Petición en marcha: `null` en reposo. Mientras hay una, los botones salen
+   *  deshabilitados y el que la lanzó enseña su progreso. El corte real del doble
+   *  envío está en `enviando`. */
+  const [guardando, setGuardando] = useState<"draft" | "published" | null>(null);
+  /** Estado en el que quedó la guía creada, para confirmárselo al profesor. */
+  const [creada, setCreada] = useState<{ status: "draft" | "published"; titulo: string } | null>(null);
+  /** Corte de doble envío que no depende del render: dos clics en el mismo instante
+   *  no llegan a mandar dos guías. */
+  const enviando = useRef(false);
 
   async function guardar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const { errors, input } = validateGuideForm({ topic, title, description, status });
+    if (enviando.current) return; // Bloqueo de doble envío, sin depender del render.
+
+    // El estado final lo decide el botón pulsado. Si se envía con Enter desde un
+    // campo (sin botón), se guarda como borrador: es lo que no ve nadie más.
+    const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
+    const estadoFinal: "draft" | "published" = submitter?.value === "published" ? "published" : "draft";
+
+    const { errors, input } = validateGuideForm({ topic, title, description, status: estadoFinal });
     setErrores(errors);
     setErrorApi(null);
     if (!input) {
@@ -63,16 +79,68 @@ export default function SubirGuía({ params }: { params: Promise<{ id: string }>
     form.append("status", input.status);
     form.append("file", file);
 
-    setGuardando(true);
+    enviando.current = true;
+    setGuardando(estadoFinal);
     try {
       await createGuide(subjectId, form);
-      router.push(`/profesor/materias/${subjectId}`);
+      setCreada({ status: estadoFinal, titulo: input.title });
     } catch (err) {
-      console.warn("[WEB-07] No se pudo subir la guía:", err);
+      console.warn("[WEB-07c] No se pudo subir la guía:", err);
       setErrorApi(err instanceof Error ? err.message : "No pudimos subir la guía.");
     } finally {
-      setGuardando(false);
+      enviando.current = false;
+      setGuardando(null);
     }
+  }
+
+  /** Vuelve a empezar de cero tras la confirmación («Subir otra guía»). */
+  function reiniciar() {
+    setTopic("");
+    setTitle("");
+    setDescription("");
+    setFile(null);
+    setFileName("");
+    setErrores({});
+    setErrorApi(null);
+    setCreada(null);
+  }
+
+  /** Confirmación del estado final: en lugar de mandar a otra pantalla y perder el
+   *  aviso, se queda aquí enseñando en qué ha quedado la guía.
+   */
+  if (creada) {
+    return (
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
+        <Breadcrumb items={[
+          { label: "Tus materias", href: "/profesor" },
+          { label: materiaName || "Materia", href: `/profesor/materias/${subjectId}` },
+          { label: "Subir guía" },
+        ]} />
+
+        <header className="flex flex-col gap-1">
+          <h1 className="text-section font-semibold text-ink">Guía creada</h1>
+        </header>
+
+        <section className="flex flex-col gap-4 rounded-card border border-line bg-surface p-6">
+          <Notice
+            tone="success"
+            title={creada.status === "published" ? "Guía publicada correctamente" : "Guardada como borrador"}
+          >
+            {creada.status === "published"
+              ? `${creada.titulo} ya está disponible para tus estudiantes.`
+              : `${creada.titulo} está guardada como borrador: solo tú la ves hasta que la publiques.`}
+          </Notice>
+          <div className="flex flex-wrap justify-end gap-3">
+            <Button variant="secondary" onClick={reiniciar}>
+              Subir otra guía
+            </Button>
+            <Button onClick={() => router.push(`/profesor/materias/${subjectId}`)}>
+              Ver las guías de la materia
+            </Button>
+          </div>
+        </section>
+      </div>
+    );
   }
 
   return (
@@ -130,15 +198,6 @@ export default function SubirGuía({ params }: { params: Promise<{ id: string }>
               </div>
             )}
           </div>
-          <Select
-            label="Estado *"
-            value={status}
-            error={errores.status}
-            onChange={(event) => setStatus(event.target.value as "draft" | "published")}
-          >
-            <option value="draft">Borrador</option>
-            <option value="published">Publicada</option>
-          </Select>
           <p className="text-meta text-muted">* Campos obligatorios</p>
         </section>
 
@@ -183,11 +242,15 @@ export default function SubirGuía({ params }: { params: Promise<{ id: string }>
             </Notice>
           )}
           <div className="flex flex-wrap justify-end gap-3">
-            <Button variant="secondary" type="button" disabled={guardando} onClick={() => router.back()}>
+            <Button variant="text" type="button" disabled={guardando !== null} onClick={() => router.back()}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={guardando || !file}>
-              {guardando ? "Subiendo…" : "Subir guía"}
+            <Button variant="secondary" type="submit" value="draft" disabled={guardando !== null || !file}>
+              {guardando === "draft" ? "Guardando…" : "Guardar borrador"}
+            </Button>
+            <Button type="submit" value="published" disabled={guardando !== null || !file}>
+              <Send size={18} aria-hidden />
+              {guardando === "published" ? "Publicando…" : "Publicar guía"}
             </Button>
           </div>
         </section>
