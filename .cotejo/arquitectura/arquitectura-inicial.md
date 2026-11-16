@@ -1,7 +1,7 @@
 ---
 id: arq-um45
 temas: [arquitectura]
-actualizado: 2026-11-03
+actualizado: 2026-11-16
 ---
 # Arquitectura inicial
 
@@ -23,7 +23,7 @@ Navegador → apps/web (Next) → rewrite /api/* → apps/api (Hono) → Supabas
 | guarda | Base de datos | Grupos, materias, profesores y guías | Supabase (Postgres) | cotejo-8e9ygu |
 | guarda | PDFs de las guías | Los archivos, privados, que se abren con un enlace que dura 60 segundos | Supabase Storage | cotejo-rjarjl |
 | conecta | Cuentas del staff | El inicio de sesión de profesores y administradores | Supabase Auth | cotejo-8e9ygu, cotejo-79tovn |
-| conecta | Publicación | Donde vive la app en internet, web y API por separado | Vercel | cotejo-bqxov3, cotejo-cw9mbx |
+| conecta | Publicación | Donde vive la app en internet, web y API por separado | Vercel | cotejo-bqxov3, cotejo-cw9mbx, cotejo-nsb9k3 |
 
 ## Cómo se abre
 
