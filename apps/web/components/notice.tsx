@@ -18,11 +18,25 @@ export interface NoticeProps {
   className?: string;
 }
 
-/** Aviso informativo, éxito o error (Figma: fondo tinte, icono, título y texto). */
+/**
+ * Aviso informativo, éxito o error (Figma: fondo tinte, icono, título y texto).
+ *
+ * Anuncios (WEB-08d, issue #42): el error es urgente y se anuncia solo
+ * (`role="alert"`), la confirmación espera su turno sin mover el foco
+ * (`role="status"`) y el informativo no interrumpe: sin región viva, que es lo
+ * que se pinta estático con la página. El rol anuncia cuando el aviso aparece o
+ * cambia, no al cargar.
+ */
+const anuncios: Record<NoticeTone, "alert" | "status" | undefined> = {
+  info: undefined,
+  success: "status",
+  error: "alert",
+};
+
 export function Notice({ tone = "info", title, children, className = "" }: NoticeProps) {
   const { icon: Icon, className: toneClass } = tones[tone];
   return (
-    <div className={`flex items-start gap-3 rounded-card p-4 ${toneClass} ${className}`}>
+    <div role={anuncios[tone]} className={`flex items-start gap-3 rounded-card p-4 ${toneClass} ${className}`}>
       <Icon size={20} className="mt-0.5 shrink-0 text-primary" aria-hidden />
       <div className="flex flex-col gap-1">
         {title && <p className="text-label font-semibold text-ink">{title}</p>}
