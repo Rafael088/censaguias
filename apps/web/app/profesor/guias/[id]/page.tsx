@@ -11,7 +11,8 @@ import { ErrorScreen, LoadingScreen } from "@/components/screen-state";
 import { deleteGuide, getGuide, publishGuide, replaceGuidePdf, updateGuide, type TeacherGuide } from "@/lib/teacher";
 
 /** Editar una guía (Figma `profesor-04` y `profesor-05`): editar título/tema/descripción,
- *  reemplazar el PDF, publicar/despublicar y eliminar con confirmación.
+ *  reemplazar el PDF, publicar y eliminar con confirmación. No se ofrece despublicar:
+ *  la API solo publica (WEB-07b).
  */
 export default function EditarGuía({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -36,7 +37,7 @@ export default function EditarGuía({ params }: { params: Promise<{ id: string }
   const [nuevoPdfName, setNuevoPdfName] = useState("");
   const [reemplazando, setReemplazando] = useState(false);
 
-  // Publicar / despublicar
+  // Publicar
   const [publicando, setPublicando] = useState(false);
 
   // Eliminar

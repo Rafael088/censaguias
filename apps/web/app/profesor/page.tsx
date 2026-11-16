@@ -1,6 +1,7 @@
 "use client";
 
 import { BookOpen, FileText } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/button";
@@ -149,6 +150,12 @@ export default function ProfesorInicio() {
         <section className="flex flex-col gap-4">
           <div className="flex items-start justify-between gap-4">
             <h2 className="text-section font-semibold text-ink">Tus guías recientes</h2>
+            <Link
+              href="/profesor/guias"
+              className="text-label font-semibold text-primary outline-none hover:underline focus-visible:rounded-control focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              Ver mis guías
+            </Link>
           </div>
           <DataTable
             caption="Guías recientes"

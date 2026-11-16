@@ -5,11 +5,18 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { use, useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/button";
 import { DataTable, TableActions, TableCell, TableRow } from "@/components/data-table";
+import { Dialog } from "@/components/dialog";
 import { EmptyState } from "@/components/empty-state";
 import { Notice } from "@/components/notice";
 import { SearchInput } from "@/components/search-input";
 import { ErrorScreen, LoadingScreen } from "@/components/screen-state";
-import { getSubjectGuides, plural, type TeacherGuide } from "@/lib/teacher";
+import { deleteGuide, getSubjectGuides, plural, publishGuide, type TeacherGuide } from "@/lib/teacher";
+
+/** Tamaño del PDF en el idioma del Figma («de 1,8 MB»). */
+function sizeTexto(bytes: number): string {
+  if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1).replace(".", ",")} MB`;
+  return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+}
 
 /** Guías de una materia (Figma `profesor-02`): tabla con título, tema, estado,
  *  fecha, acciones (editar, publicar, borrar) y botón para subir una nueva guía.
@@ -32,6 +39,12 @@ export default function MateriaGuías({ params }: { params: Promise<{ id: string
   const [actualizando, setActualizando] = useState(false);
   const [intento, setIntento] = useState(0);
   const [topics, setTopics] = useState<string[]>([]);
+
+  // Publicar / eliminar: diálogo de confirmación del Figma `profesor-06`.
+  const [dialogo, setDialogo] = useState<{ tipo: "publicar" | "eliminar"; guia: TeacherGuide } | null>(null);
+  const [ocupado, setOcupado] = useState(false);
+  const [aviso, setAviso] = useState<{ titulo: string; texto: string } | null>(null);
+  const [errorAccion, setErrorAccion] = useState<string | null>(null);
 
   const cargar = useCallback(() => {
     let cancelled = false;
@@ -96,6 +109,37 @@ export default function MateriaGuías({ params }: { params: Promise<{ id: string
     setPage(1);
   }
 
+  /** Lo que hace el botón del diálogo: publicar el borrador o eliminar la guía, de verdad. */
+  async function confirmarAccion() {
+    if (!dialogo || ocupado) return;
+    const { tipo, guia } = dialogo;
+    setOcupado(true);
+    setErrorAccion(null);
+    setAviso(null);
+    try {
+      if (tipo === "publicar") {
+        await publishGuide(guia.id);
+        setAviso({
+          titulo: "Guía publicada correctamente",
+          texto: `${guia.title} ya está disponible para ${materiaName || "tu grupo"}.`,
+        });
+      } else {
+        await deleteGuide(guia.id);
+        setAviso({
+          titulo: "Guía eliminada",
+          texto: `${guia.title} y su PDF ya no están en ${materiaName || "esta materia"}.`,
+        });
+      }
+      setDialogo(null);
+      cargar();
+    } catch (error) {
+      console.warn("[WEB-07b] No se pudo completar la acción:", error);
+      setErrorAccion(error instanceof Error ? error.message : "No se pudo completar la acción.");
+    } finally {
+      setOcupado(false);
+    }
+  }
+
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
       <header className="flex flex-wrap items-start justify-between gap-4">
@@ -110,6 +154,17 @@ export default function MateriaGuías({ params }: { params: Promise<{ id: string
           Subir guía
         </Button>
       </header>
+
+      {errorAccion && (
+        <Notice tone="error" title="No se pudo completar la acción">
+          {errorAccion}
+        </Notice>
+      )}
+      {aviso && !errorAccion && (
+        <Notice tone="success" title={aviso.titulo}>
+          {aviso.texto}
+        </Notice>
+      )}
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="min-w-64 flex-1">
@@ -227,30 +282,24 @@ export default function MateriaGuías({ params }: { params: Promise<{ id: string
                         {
                           label: "Editar",
                           onClick: () => {
-                            window.location.href = `/profesor/guias/${guia.id}`;
+                            router.push(`/profesor/guias/${guia.id}`);
                           },
                         },
-                        {
-                          label:
-                            guia.status === "published" ? "Despublicar" : "Publicar",
-                          onClick: () => {
-                            // Usamos la acción de publicar; para despublicar cambiaríamos el estado
-                            window.location.href = `/profesor/guias/${guia.id}`;
-                          },
-                        },
-                        {
-                          label: "Eliminar",
-                          onClick: () => {
-                            if (
-                              window.confirm(
-                                `¿Eliminar la guía "${guia.title}"? Se borrará también su archivo PDF.`,
-                              )
-                            ) {
-                              // Se manejaría con una acción de borrar; por ahora navegamos al detalle
-                              window.location.href = `/profesor/guias/${guia.id}`;
-                            }
-                          },
-                        },
+                        // Figma `profesor-02`: el borrador se publica y la publicada se
+                        // elimina. No hay «Despublicar»: la API solo publica.
+                        ...(guia.status === "draft"
+                          ? [
+                              {
+                                label: "Publicar",
+                                onClick: () => setDialogo({ tipo: "publicar", guia }),
+                              },
+                            ]
+                          : [
+                              {
+                                label: "Eliminar",
+                                onClick: () => setDialogo({ tipo: "eliminar", guia }),
+                              },
+                            ]),
                       ]}
                     />
                   </TableCell>
@@ -286,6 +335,41 @@ export default function MateriaGuías({ params }: { params: Promise<{ id: string
           )}
         </div>
       )}
+
+      <Dialog
+        open={dialogo !== null}
+        onClose={() => {
+          if (!ocupado) setDialogo(null);
+        }}
+        title={dialogo?.tipo === "publicar" ? "¿Publicar esta guía?" : "¿Eliminar esta guía?"}
+        description={
+          dialogo
+            ? `${dialogo.guia.title} · ${dialogo.guia.topic}${materiaName ? ` · ${materiaName}` : ""}`
+            : undefined
+        }
+        actions={
+          <>
+            <Button variant="secondary" disabled={ocupado} onClick={() => setDialogo(null)}>
+              Cancelar
+            </Button>
+            <Button disabled={ocupado} onClick={() => void confirmarAccion()}>
+              {ocupado
+                ? dialogo?.tipo === "publicar"
+                  ? "Publicando…"
+                  : "Eliminando…"
+                : dialogo?.tipo === "publicar"
+                  ? "Publicar guía"
+                  : "Eliminar guía"}
+            </Button>
+          </>
+        }
+      >
+        <Notice title="Antes de continuar">
+          {dialogo?.tipo === "publicar"
+            ? `Será visible para los estudiantes de este grupo. El PDF adjunto es ${dialogo.guia.fileName}, de ${sizeTexto(dialogo.guia.sizeBytes)}.`
+            : "Se eliminarán la guía y su PDF. Esta acción es irreversible y no podrás recuperar el contenido."}
+        </Notice>
+      </Dialog>
     </div>
   );
 }

@@ -143,17 +143,43 @@ export const guideRoutes = new Hono<{ Variables: AppVars }>()
     const db = supabaseAdmin();
     const guide = await findOwnedGuide(db, c.req.param("id"), c.get("staff").id);
 
-    const form = await c.req.formData();
-    const update: Record<string, unknown> = {};
-    for (const key of ["topic", "title", "description"] as const) {
-      const value = form.get(key);
-      if (typeof value === "string") update[key] = value;
-    }
-    const parsed = updateGuideInput.safeParse(update);
-    if (!parsed.success) return c.json({ error: "Datos de la guía no válidos" }, 400);
+    // Dos formatos, según lo que pida el cliente (WEB-07b): JSON cuando solo se
+    // cambia texto —es el que manda apps/web/lib/teacher.ts en `updateGuide`, igual
+    // que el resto de PATCH de esta API— y multipart cuando trae el PDF a reemplazar
+    // (`replaceGuidePdf`). Antes solo se leía FormData y editar desde la web
+    // terminaba siempre en «No se envió ningún cambio».
+    const esJson = (c.req.header("content-type") ?? "").toLowerCase().includes("application/json");
+    const campos: Record<string, unknown> = {};
+    let file: File | null = null;
 
-    const file = form.get("file");
-    if (file instanceof File) {
+    if (esJson) {
+      let body: unknown;
+      try {
+        body = await c.req.json();
+      } catch {
+        return c.json({ error: "Datos de la guía no válidos" }, 400);
+      }
+      const parsed = updateGuideInput.safeParse(body);
+      if (!parsed.success) return c.json({ error: "Datos de la guía no válidos" }, 400);
+      // Los campos ya validados y recortados son los que se guardan, no el crudo.
+      Object.assign(campos, parsed.data);
+    } else {
+      const form = await c.req.formData();
+      const crudos: Record<string, unknown> = {};
+      for (const key of ["topic", "title", "description"] as const) {
+        const value = form.get(key);
+        if (typeof value === "string") crudos[key] = value;
+      }
+      const parsed = updateGuideInput.safeParse(crudos);
+      if (!parsed.success) return c.json({ error: "Datos de la guía no válidos" }, 400);
+      Object.assign(campos, parsed.data);
+      const posibleFile = form.get("file");
+      if (posibleFile instanceof File) file = posibleFile;
+    }
+
+    const update: Record<string, unknown> = { ...campos };
+
+    if (file) {
       const pdf = await readPdfBytes(file);
       if (isPdfRejection(pdf)) return c.json({ error: pdf.error }, pdf.status);
       // Se sube encima de la misma ruta (upsert): no cambia el id de la guía ni deja el

@@ -200,3 +200,77 @@ describe("GET /v1/teacher/subjects — API-06b: materias del profesor", () => {
     );
   });
 });
+
+describe("GET /v1/teacher/guides — WEB-07b: «Mis guías» del espacio docente", () => {
+  it("pide sesión: sin Bearer responde 401", async () => {
+    const res = await app.request("/v1/teacher/guides");
+    expect(res.status).toBe(401);
+    expect(await res.json()).toEqual({ error: "Falta sesión" });
+  });
+
+  it("rechaza al admin: es el espacio docente (403)", async () => {
+    await withSeed({ profiles: PROFILES, groups: GROUPS, subjects: [], guides: [] }, async (client) => {
+      const res = await app.request("/v1/teacher/guides", { headers: client.staffSession(ADMIN).headers });
+      expect(res.status).toBe(403);
+      expect(await res.json()).toEqual({ error: "Sin permiso" });
+    });
+  });
+
+  it("un profesor sin materias devuelve la lista vacía y el resumen a cero", async () => {
+    await withSeed({ profiles: PROFILES, groups: GROUPS, subjects: [], guides: [] }, async (client) => {
+      const res = await app.request("/v1/teacher/guides", { headers: client.staffSession(NUEVO).headers });
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual({ items: [], summary: { total: 0, published: 0, drafts: 0 } });
+    });
+  });
+
+  it("devuelve todas sus guías con materia y grupo, sin el tope de 10 de las recientes", async () => {
+    // 12 guías de Laura: la lista completa no se queda en las 10 de «recientes».
+    const guides = Array.from({ length: 12 }, (_, index) => {
+      const day = String(index + 1).padStart(2, "0");
+      return guide(guideId(day), MATH_G1, day, index % 2 === 0 ? "published" : "draft");
+    });
+    guides.push(guide(guideId("16"), SCI_G1, "16", "published", "Células"));
+
+    await withSeed({ profiles: PROFILES, groups: GROUPS, subjects: SUBJECTS, guides }, async (client) => {
+      const res = await app.request("/v1/teacher/guides", { headers: client.staffSession(LAURA).headers });
+      expect(res.status).toBe(200);
+      const body = await res.json();
+
+      expect(body.items).toHaveLength(12);
+      // De más reciente a más antigua, como en la tabla del inicio.
+      expect(body.items[0].id).toBe(guideId("12"));
+      expect(body.items[11].id).toBe(guideId("01"));
+      expect(body.summary).toEqual({ total: 12, published: 6, drafts: 6 });
+
+      expect(body.items[0].subject).toEqual({ id: MATH_G1, name: "Matemáticas" });
+      expect(body.items[0].group).toEqual({
+        id: G1,
+        label: "CLEI IV · A",
+        shift: "morning",
+        shiftLabel: "Mañana",
+        accessCode: "CENSA-4AM-K7Q",
+      });
+      // Ni la guía de Carlos ni la ruta de Storage se cuelan.
+      expect(body.items.some((row: { id: string }) => row.id === guideId("16"))).toBe(false);
+      expect(body.items[0].storagePath).toBeUndefined();
+      expect(body.items[0].storage_path).toBeUndefined();
+    });
+  });
+
+  it("cada profesor solo ve sus propias guías", async () => {
+    const guides = [
+      guide(guideId("10"), MATH_G1, "10", "published"),
+      guide(guideId("15"), SCI_G1, "15", "published", "Células"),
+    ];
+    await withSeed({ profiles: PROFILES, groups: GROUPS, subjects: SUBJECTS, guides }, async (client) => {
+      const res = await app.request("/v1/teacher/guides", { headers: client.staffSession(CARLOS).headers });
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.items).toHaveLength(1);
+      expect(body.items[0].id).toBe(guideId("15"));
+      expect(body.items[0].subject.name).toBe("Ciencias Naturales");
+      expect(body.summary).toEqual({ total: 1, published: 1, drafts: 0 });
+    });
+  });
+});

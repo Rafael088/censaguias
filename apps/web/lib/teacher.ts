@@ -6,7 +6,7 @@
  * FormData (subida y reemplazo de PDF) y el cliente tipado de Hono no las
  * tipa bien.
  *
- * Rutas: GET /v1/teacher/subjects, GET/POST /v1/subjects/:id/guides,
+ * Rutas: GET /v1/teacher/subjects, GET /v1/teacher/guides, GET/POST /v1/subjects/:id/guides,
  * GET/PATCH/DELETE /v1/guides/:id y POST /v1/guides/:id/publish.
  * La sesión la vigila <StaffShell> (requireStaff("teacher")).
  */
@@ -72,6 +72,12 @@ export interface TeacherOverview {
   recentGuides: TeacherRecentGuide[];
 }
 
+/** «Mis guías» (/profesor/guias): todas las guías del profesor, sin el tope de 10 de las recientes. */
+export interface TeacherGuidesList {
+  items: TeacherRecentGuide[];
+  summary: { total: number; published: number; drafts: number };
+}
+
 export interface TeacherGuide {
   id: string;
   subjectId: string;
@@ -117,6 +123,15 @@ export async function getTeacherOverview(): Promise<TeacherOverview> {
   return ok<TeacherOverview>(res);
 }
 
+/** Todas mis guías con su materia y su grupo (barra lateral «Mis guías»). */
+export async function getTeacherGuides(): Promise<TeacherGuidesList> {
+  const res = await fetch("/api/v1/teacher/guides", {
+    headers: await authHeaders(),
+    credentials: "include",
+  });
+  return ok<TeacherGuidesList>(res);
+}
+
 /** Guías de una materia con resumen (profesor-02). */
 export async function getSubjectGuides(subjectId: string): Promise<TeacherGuidesPage> {
   const res = await fetch(`/api/v1/subjects/${subjectId}/guides`, {
@@ -146,7 +161,10 @@ export async function getGuide(guideId: string): Promise<TeacherGuide> {
   return ok<TeacherGuide>(res);
 }
 
-/** Editar título/tema/descripción de una guía (profesor-04). */
+/** Editar título/tema/descripción de una guía (profesor-04).
+ *  Manda JSON, que es el formato que acepta PATCH /v1/guides/:id para texto;
+ *  el PDF se reemplaza aparte, con FormData (replaceGuidePdf).
+ */
 export async function updateGuide(
   guideId: string,
   input: { topic?: string; title?: string; description?: string },

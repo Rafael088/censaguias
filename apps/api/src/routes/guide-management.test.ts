@@ -169,6 +169,15 @@ function patchForm(fields: { topic?: string; title?: string; description?: strin
   return form;
 }
 
+/** Lo que manda el navegador al editar solo texto (apps/web/lib/teacher.ts → updateGuide). */
+function patchJson(session: Session, guideId: string, body: unknown) {
+  return app.request(`/v1/guides/${guideId}`, {
+    method: "PATCH",
+    headers: { ...session.headers, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
 describe("GET /v1/subjects/:id/guides — API-06: listar guías de una materia", () => {
   it("pide sesión de docente (401 sin token)", async () => {
     const res = await listGuides({ headers: {} }, ALGEBRA);
@@ -353,6 +362,73 @@ describe("PATCH /v1/guides/:id — API-06: editar guía", () => {
     );
     expect(res.status).toBe(500);
     expect(db.guides.find((row) => row.id === DRAFT1)?.title).toBe("Ecuaciones de segundo grado");
+  });
+});
+
+describe("PATCH /v1/guides/:id con JSON — WEB-07b: el contrato que usa el navegador", () => {
+  it("200: edita tema, título y descripción y guarda el texto recortado", async () => {
+    const res = await patchJson(db.staffSession(TEACHER_OWNER), DRAFT1, {
+      topic: "  Factorización  ",
+      title: "Guía nueva",
+      description: "Descripción nueva",
+    });
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as GuideDto;
+    expect(body.topic).toBe("Factorización");
+    expect(body.title).toBe("Guía nueva");
+    // El PDF y su tamaño no se tocan: solo se cambia el texto.
+    expect(body.fileName).toBe("borrador.pdf");
+    expect(body.sizeBytes).toBe(1024);
+  });
+
+  it("200: cambia solo los campos enviados", async () => {
+    const res = await patchJson(db.staffSession(TEACHER_OWNER), DRAFT1, { title: "Solo el título" });
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as GuideDto;
+    expect(body.title).toBe("Solo el título");
+    expect(body.topic).toBe("Ecuaciones");
+  });
+
+  it("el estado no se cambia por PATCH: eso es cosa de publicar", async () => {
+    const res = await patchJson(db.staffSession(TEACHER_OWNER), DRAFT1, {
+      title: "Título",
+      status: "published",
+    });
+    expect(res.status).toBe(200);
+    expect(((await res.json()) as GuideDto).status).toBe("draft");
+    expect(db.guides.find((row) => row.id === DRAFT1)?.status).toBe("draft");
+  });
+
+  it("devuelve 400 si no se envía ningún cambio", async () => {
+    const res = await patchJson(db.staffSession(TEACHER_OWNER), DRAFT1, {});
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: "No se envió ningún cambio" });
+  });
+
+  it("devuelve 400 si los campos no son válidos", async () => {
+    const res = await patchJson(db.staffSession(TEACHER_OWNER), DRAFT1, { title: "x" });
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: "Datos de la guía no válidos" });
+    expect(db.guides.find((row) => row.id === DRAFT1)?.title).toBe("Ecuaciones de segundo grado");
+  });
+
+  it("devuelve 400 si el cuerpo no es JSON", async () => {
+    const res = await app.request(`/v1/guides/${DRAFT1}`, {
+      method: "PATCH",
+      headers: { ...db.staffSession(TEACHER_OWNER).headers, "Content-Type": "application/json" },
+      body: "esto no es json",
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it("devuelve 401 sin sesión, igual que con FormData", async () => {
+    const res = await patchJson({ headers: {} }, DRAFT1, { title: "X" });
+    expect(res.status).toBe(401);
+  });
+
+  it("devuelve 403 a otro profesor, igual que con FormData", async () => {
+    const res = await patchJson(db.staffSession(OTHER_TEACHER), DRAFT1, { title: "X" });
+    expect(res.status).toBe(403);
   });
 });
 
