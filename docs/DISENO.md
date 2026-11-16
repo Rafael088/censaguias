@@ -35,7 +35,7 @@ Botón (4 variantes) · Campo con etiqueta, ayuda y error · Selector · Buscado
 
 ## Componentes base (WEB-01)
 
-Todos los de la lista anterior —salvo la zona de PDF y la vista previa, que usa WEB-02— ya existen en [`apps/web/components/`](../apps/web/components/) y se ven todos juntos en la página **`/dev/componentes`** (`npm run dev:web`):
+Todos los de la lista anterior —salvo la zona de PDF y la vista previa, que usa WEB-02— ya existen en [`apps/web/components/`](../apps/web/components/) y se ven todos juntos en la página **`/dev/componentes`** (`npm run dev:web`; solo en desarrollo: en producción responde 404, WEB-08b):
 
 | Componente | Archivo | Equivalente del Figma |
 |---|---|---|
