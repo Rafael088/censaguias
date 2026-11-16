@@ -52,5 +52,11 @@ export function createApp() {
 
 export const app = createApp();
 
+/** Entrada de Vercel (INF-02b): la detección de Hono usa el export por defecto de
+ *  `src/app.ts`, que es un handler `fetch`. El servidor local (`src/local-server.ts`)
+ *  es el único que abre un puerto; aquí no hay `listen()` para no arrancar dos veces.
+ */
+export default app;
+
 /** Tipo que consume el front con `hc<AppType>()` (ADR 0002). */
 export type AppType = typeof app;
