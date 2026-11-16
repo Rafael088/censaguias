@@ -1,26 +1,24 @@
 "use client";
 
 import { Send } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { use, useId, useRef, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { use, useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { Button } from "@/components/button";
 import { Field } from "@/components/field";
 import { Notice } from "@/components/notice";
 import { ErrorScreen, LoadingScreen } from "@/components/screen-state";
-import { createGuide, plural, validateGuideForm, type TeacherGuideFormValues } from "@/lib/teacher";
+import { createGuide, getTeacherOverview, validateGuideForm, type TeacherSubject } from "@/lib/teacher";
 
-/** Subir una guía (Figma `profesor-03`): tema, título, descripción y el archivo PDF
- *  (máx. 10 MB), con dos salidas —Guardar borrador y Publicar guía— en lugar del
- *  selector de estado (WEB-07c). La que pulse el profesor es la que decide el
- *  estado final de la guía.
+/** Subir una guía (Figma `profesor-03`): destino con datos reales, tema, título,
+ *  descripción y el archivo PDF (máx. 10 MB), con dos salidas —Guardar borrador y
+ *  Publicar guía— en lugar del selector de estado (WEB-07c). La que pulse el
+ *  profesor es la que decide el estado final de la guía.
  */
 export default function SubirGuía({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const { id: subjectId } = use(params);
-  const materiaName = searchParams.get("materiaName") || "";
 
   const topicRef = useRef<HTMLInputElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
@@ -45,6 +43,35 @@ export default function SubirGuía({ params }: { params: Promise<{ id: string }>
   /** Corte de doble envío que no depende del render: dos clics en el mismo instante
    *  no llegan a mandar dos guías. */
   const enviando = useRef(false);
+
+  /** Destino de la guía (grupo, jornada y materia), leído de la API por el id de la
+   *  materia: el query string deja de ser el contexto principal (WEB-07d). */
+  const [materia, setMateria] = useState<TeacherSubject | null>(null);
+  const [falloDestino, setFalloDestino] = useState<string | null>(null);
+  const [intento, setIntento] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    getTeacherOverview()
+      .then((overview) => {
+        if (cancelled) return;
+        const encontrada = overview.subjects.find((subject) => subject.id === subjectId) ?? null;
+        setMateria(encontrada);
+        setFalloDestino(
+          encontrada
+            ? null
+            : "No encontramos esta materia. Puede que la hayan quitado o que ya no sea tuya.",
+        );
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        console.warn("[WEB-07d] No se pudo cargar el destino de la guía:", error);
+        setFalloDestino("No pudimos cargar el grupo y la materia de esta guía.");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [subjectId, intento]);
 
   async function guardar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -105,6 +132,12 @@ export default function SubirGuía({ params }: { params: Promise<{ id: string }>
     setCreada(null);
   }
 
+  // El destino se pinta con datos de la API; si no llega, no se rellena el formulario a ciegas.
+  if (falloDestino) {
+    return <ErrorScreen onRetry={() => setIntento((n) => n + 1)}>{falloDestino}</ErrorScreen>;
+  }
+  if (!materia) return <LoadingScreen text="Cargando el destino de la guía…" />;
+
   /** Confirmación del estado final: en lugar de mandar a otra pantalla y perder el
    *  aviso, se queda aquí enseñando en qué ha quedado la guía.
    */
@@ -113,7 +146,7 @@ export default function SubirGuía({ params }: { params: Promise<{ id: string }>
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
         <Breadcrumb items={[
           { label: "Tus materias", href: "/profesor" },
-          { label: materiaName || "Materia", href: `/profesor/materias/${subjectId}` },
+          { label: materia.name, href: `/profesor/materias/${subjectId}` },
           { label: "Subir guía" },
         ]} />
 
@@ -144,14 +177,16 @@ export default function SubirGuía({ params }: { params: Promise<{ id: string }>
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
+    // Dos columnas en escritorio, como en el Figma: a la izquierda el destino y el
+    // formulario, a la derecha el panel «Antes de publicar», que ocupa sus cuatro filas.
+    <div className="mx-auto grid w-full max-w-5xl gap-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
       <Breadcrumb items={[
         { label: "Tus materias", href: "/profesor" },
-        { label: materiaName || "Materia", href: `/profesor/materias/${subjectId}` },
+        { label: materia.name, href: `/profesor/materias/${subjectId}` },
         { label: "Subir guía" },
       ]} />
 
-      <header className="flex flex-col gap-1">
+      <header className="flex flex-col gap-1 lg:col-start-1">
         <h1 className="text-section font-semibold text-ink">Subir guía</h1>
         <p className="text-body text-muted">
           Sube un PDF de máximo 10 MB. Puede guardarse como borrador o publicarse
@@ -159,7 +194,47 @@ export default function SubirGuía({ params }: { params: Promise<{ id: string }>
         </p>
       </header>
 
-      <form onSubmit={(event) => void guardar(event)} className="flex flex-col gap-6">
+      {/* Destino de la guía: sale de la API por el id de la materia, no del query string. */}
+      <section className="flex flex-col gap-4 rounded-card border border-line bg-surface p-6 lg:col-start-1">
+        <h2 className="text-body font-semibold text-ink">Destino de la guía</h2>
+        <dl className="grid gap-4 sm:grid-cols-3">
+          <div className="flex flex-col gap-1">
+            <dt className="text-label font-semibold text-ink">Grupo asignado</dt>
+            <dd className="text-body text-muted">{materia.group?.label ?? "Sin grupo asignado"}</dd>
+          </div>
+          <div className="flex flex-col gap-1">
+            <dt className="text-label font-semibold text-ink">Jornada</dt>
+            <dd className="text-body text-muted">{materia.group?.shiftLabel ?? "Sin jornada"}</dd>
+          </div>
+          <div className="flex flex-col gap-1">
+            <dt className="text-label font-semibold text-ink">Materia asignada</dt>
+            <dd className="text-body text-muted">{materia.name}</dd>
+          </div>
+        </dl>
+        <div className="rounded-card border border-line bg-tint p-4">
+          <p className="text-label font-semibold text-ink">Quién verá esta guía</p>
+          <p className="mt-1 text-meta text-muted">
+            Los estudiantes de {materia.group?.label ?? "tu grupo"}
+            {materia.group ? ` · ${materia.group.shiftLabel}` : ""}, en {materia.name}.
+            Un borrador solo es visible para ti.
+          </p>
+        </div>
+      </section>
+
+      <aside className="flex flex-col gap-4 rounded-card border border-line bg-surface p-6 lg:col-start-2 lg:row-span-4 lg:row-start-1">
+        <h2 className="text-body font-semibold text-ink">Antes de publicar</h2>
+        <p className="text-meta text-muted">Comprueba el grupo, la materia y el archivo adjunto.</p>
+        <p className="text-meta text-muted">Utiliza un título claro y un tema para facilitar la búsqueda.</p>
+        <div className="flex flex-col gap-1 rounded-card border border-line bg-tint p-4">
+          <p className="text-label font-semibold text-ink">Borrador o publicada</p>
+          <p className="text-meta text-muted">
+            Un borrador solo es visible para ti. Al publicar, la guía será visible
+            para {materia.group?.label ?? "tu grupo"}.
+          </p>
+        </div>
+      </aside>
+
+      <form onSubmit={(event) => void guardar(event)} className="flex flex-col gap-6 lg:col-start-1">
         <section className="flex flex-col gap-4 rounded-card border border-line bg-surface p-6">
           <h2 className="text-body font-semibold text-ink">Datos de la guía</h2>
           <div className="grid gap-4 sm:grid-cols-2">
