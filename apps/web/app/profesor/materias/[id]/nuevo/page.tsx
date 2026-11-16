@@ -2,11 +2,12 @@
 
 import { Send } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { use, useEffect, useRef, useState, type FormEvent } from "react";
+import { use, useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { Button } from "@/components/button";
 import { Field } from "@/components/field";
 import { Notice } from "@/components/notice";
+import { PdfDropzone } from "@/components/pdf-dropzone";
 import { ErrorScreen, LoadingScreen } from "@/components/screen-state";
 import { createGuide, getTeacherOverview, validateGuideForm, type TeacherSubject } from "@/lib/teacher";
 
@@ -24,9 +25,15 @@ export default function SubirGuía({ params }: { params: Promise<{ id: string }>
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [file, setFile] = useState<File | null>(null);
-  const [fileName, setFileName] = useState("");
 
-  const [errores, setErrores] = useState<{ topic?: string; title?: string; description?: string; status?: string }>({});
+  const [errores, setErrores] = useState<{
+    topic?: string;
+    title?: string;
+    description?: string;
+    /** Falta del PDF: error propio del archivo, pintado junto al archivo (WEB-08e). */
+    file?: string;
+    status?: string;
+  }>({});
   const [errorApi, setErrorApi] = useState<string | null>(null);
   /** Petición en marcha: `null` en reposo. Mientras hay una, los botones salen
    *  deshabilitados y el que la lanzó enseña su progreso. El corte real del doble
@@ -37,6 +44,18 @@ export default function SubirGuía({ params }: { params: Promise<{ id: string }>
   /** Corte de doble envío que no depende del render: dos clics en el mismo instante
    *  no llegan a mandar dos guías. */
   const enviando = useRef(false);
+
+  /** IDs del textarea de descripción: enlazan etiqueta, campo y error (WEB-08e). */
+  const descripcionId = useId();
+  const descripcionErrorId = `${descripcionId}-error`;
+
+  const formRef = useRef<HTMLFormElement>(null);
+  /** Al enviar, el foco va al primer campo inválido. Van en el orden en que se piden
+   *  y todos llevan `aria-invalid` cuando fallan, así que el primero que encuentre
+   *  el selector es el primero que se pide. */
+  useEffect(() => {
+    formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+  }, [errores]);
 
   /** Destino de la guía (grupo, jornada y materia), leído de la API por el id de la
    *  materia: el query string deja de ser el contexto principal (WEB-07d). */
@@ -77,14 +96,12 @@ export default function SubirGuía({ params }: { params: Promise<{ id: string }>
     const estadoFinal: "draft" | "published" = submitter?.value === "published" ? "published" : "draft";
 
     const { errors, input } = validateGuideForm({ topic, title, description, status: estadoFinal });
-    setErrores(errors);
+    // La falta del PDF es un error propio del archivo: se pinta junto al archivo,
+    // nunca bajo el título (WEB-08e).
+    const erroresFinales = { ...errors, file: file ? undefined : "Selecciona un archivo PDF." };
+    setErrores(erroresFinales);
     setErrorApi(null);
-    if (!input) return;
-
-    if (!file) {
-      setErrores({ ...errores, title: "Selecciona un archivo PDF." });
-      return;
-    }
+    if (!input || !file) return;
 
     const form = new FormData();
     form.append("topic", input.topic);
@@ -113,7 +130,6 @@ export default function SubirGuía({ params }: { params: Promise<{ id: string }>
     setTitle("");
     setDescription("");
     setFile(null);
-    setFileName("");
     setErrores({});
     setErrorApi(null);
     setCreada(null);
@@ -221,12 +237,13 @@ export default function SubirGuía({ params }: { params: Promise<{ id: string }>
         </div>
       </aside>
 
-      <form onSubmit={(event) => void guardar(event)} className="flex flex-col gap-6 lg:col-start-1">
+      <form ref={formRef} onSubmit={(event) => void guardar(event)} className="flex flex-col gap-6 lg:col-start-1">
         <section className="flex flex-col gap-4 rounded-card border border-line bg-surface p-6">
           <h2 className="text-body font-semibold text-ink">Datos de la guía</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field
               label="Tema *"
+              aria-required
               placeholder="Ej. Ecuaciones diferenciales"
               value={topic}
               error={errores.topic}
@@ -234,6 +251,7 @@ export default function SubirGuía({ params }: { params: Promise<{ id: string }>
             />
             <Field
               label="Título *"
+              aria-required
               placeholder="Ej. Guía 1: introducción"
               value={title}
               error={errores.title}
@@ -241,15 +259,23 @@ export default function SubirGuía({ params }: { params: Promise<{ id: string }>
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-label font-semibold text-ink">Descripción *</label>
+            <label htmlFor={descripcionId} className="text-label font-semibold text-ink">Descripción *</label>
             <textarea
+              id={descripcionId}
+              aria-required
+              aria-invalid={errores.description ? true : undefined}
+              aria-describedby={errores.description ? descripcionErrorId : undefined}
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               placeholder="Qué cubre esta guía y para qué sirve"
               className={`min-h-[100px] w-full rounded-control border bg-surface px-3 py-3 text-body text-ink outline-none focus:border-2 focus:border-primary resize-none ${errores.description ? "border-2 border-primary" : "border-line"}`}
             />
             {errores.description && (
-              <div className="flex items-start gap-2 rounded-card border border-line bg-tint p-3 text-label text-ink">
+              <div
+                id={descripcionErrorId}
+                role="alert"
+                className="flex items-start gap-2 rounded-card border border-line bg-tint p-3 text-label text-ink"
+              >
                 <span>{errores.description}</span>
               </div>
             )}
@@ -259,31 +285,12 @@ export default function SubirGuía({ params }: { params: Promise<{ id: string }>
 
         <section className="flex flex-col gap-4 rounded-card border border-line bg-surface p-6">
           <h2 className="text-body font-semibold text-ink">Archivo PDF</h2>
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="archivo-pdf" className="text-label font-semibold text-ink">
-              Archivo PDF *
-            </label>
-            <input
-              id="archivo-pdf"
-              type="file"
-              accept=".pdf"
-              onChange={(event) => {
-                const f = event.target.files?.[0] ?? null;
-                setFile(f);
-                setFileName(f ? f.name : "");
-              }}
-              className="min-h-[46px] w-full rounded-control border border-line bg-surface px-3 text-body text-ink outline-none focus:border-2 focus:border-primary"
-            />
-            {file && (
-              <div className="flex items-center gap-2">
-                <span className="text-meta text-muted">{fileName}</span>
-                <span className="text-meta text-muted">({Math.round(file.size / 1024)} KB)</span>
-              </div>
-            )}
-            <p className="text-meta text-muted">
-              Máximo 10 MB. Solo archivos PDF. El nombre del archivo se conserva en la guía.
-            </p>
-          </div>
+          <PdfDropzone
+            file={file}
+            onChange={setFile}
+            error={errores.file}
+            disabled={guardando !== null}
+          />
           {errorApi && (
             <Notice tone="error" title="No pudimos subir la guía">
               {errorApi}
