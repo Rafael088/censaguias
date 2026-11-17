@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { use, useState, type FormEvent } from "react";
+import { use, useId, useRef, useState, type FormEvent } from "react";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { Button } from "@/components/button";
 import { Field } from "@/components/field";
@@ -20,6 +20,12 @@ export default function SubirGuía({ params }: { params: Promise<{ id: string }>
   const { id: subjectId } = use(params);
   const materiaName = searchParams.get("materiaName") || "";
 
+  const topicRef = useRef<HTMLInputElement>(null);
+  const titleRef = useRef<HTMLInputElement>(null);
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const descriptionId = useId();
+
   const [topic, setTopic] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -27,7 +33,7 @@ export default function SubirGuía({ params }: { params: Promise<{ id: string }>
   const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState("");
 
-  const [errores, setErrores] = useState<{ topic?: string; title?: string; description?: string; status?: string }>({});
+  const [errores, setErrores] = useState<{ topic?: string; title?: string; description?: string; status?: string; file?: string }>({});
   const [errorApi, setErrorApi] = useState<string | null>(null);
   const [guardando, setGuardando] = useState(false);
 
@@ -36,10 +42,17 @@ export default function SubirGuía({ params }: { params: Promise<{ id: string }>
     const { errors, input } = validateGuideForm({ topic, title, description, status });
     setErrores(errors);
     setErrorApi(null);
-    if (!input) return;
+    if (!input) {
+      // Enfocar el primer campo con error.
+      if (errores.topic) topicRef.current?.focus();
+      else if (errores.title) titleRef.current?.focus();
+      else if (errores.description) descriptionRef.current?.focus();
+      return;
+    }
 
     if (!file) {
-      setErrores({ ...errores, title: "Selecciona un archivo PDF." });
+      setErrores({ ...errores, file: "Selecciona un archivo PDF." });
+      fileRef.current?.focus();
       return;
     }
 
@@ -88,6 +101,7 @@ export default function SubirGuía({ params }: { params: Promise<{ id: string }>
               value={topic}
               error={errores.topic}
               onChange={(event) => setTopic(event.target.value)}
+              ref={topicRef}
             />
             <Field
               label="Título *"
@@ -95,18 +109,23 @@ export default function SubirGuía({ params }: { params: Promise<{ id: string }>
               value={title}
               error={errores.title}
               onChange={(event) => setTitle(event.target.value)}
+              ref={titleRef}
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-label font-semibold text-ink">Descripción *</label>
+            <label htmlFor={descriptionId} className="text-label font-semibold text-ink">Descripción *</label>
             <textarea
+              id={descriptionId}
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               placeholder="Qué cubre esta guía y para qué sirve"
+              ref={descriptionRef}
+              aria-describedby={errores.description ? `${descriptionId}-error` : undefined}
+              aria-invalid={errores.description ? true : undefined}
               className={`min-h-[100px] w-full rounded-control border bg-surface px-3 py-3 text-body text-ink outline-none focus:border-2 focus:border-primary resize-none ${errores.description ? "border-2 border-primary" : "border-line"}`}
             />
             {errores.description && (
-              <div className="flex items-start gap-2 rounded-card border border-line bg-tint p-3 text-label text-ink">
+              <div id={`${descriptionId}-error`} role="alert" className="flex items-start gap-2 rounded-card border border-line bg-tint p-3 text-label text-ink">
                 <span>{errores.description}</span>
               </div>
             )}
@@ -131,15 +150,23 @@ export default function SubirGuía({ params }: { params: Promise<{ id: string }>
             </label>
             <input
               id="archivo-pdf"
+              ref={fileRef}
               type="file"
               accept=".pdf"
+              aria-describedby={errores.file ? "archivo-error" : undefined}
+              aria-invalid={errores.file ? true : undefined}
               onChange={(event) => {
                 const f = event.target.files?.[0] ?? null;
                 setFile(f);
                 setFileName(f ? f.name : "");
               }}
-              className="min-h-[46px] w-full rounded-control border border-line bg-surface px-3 text-body text-ink outline-none focus:border-2 focus:border-primary"
+              className={`min-h-[46px] w-full rounded-control border bg-surface px-3 text-body text-ink outline-none focus:border-2 focus:border-primary ${errores.file ? "border-2 border-primary" : "border-line"}`}
             />
+            {errores.file && (
+              <div id="archivo-error" role="alert" className="flex items-start gap-2 rounded-card border border-line bg-tint p-3 text-label text-ink">
+                <span>{errores.file}</span>
+              </div>
+            )}
             {file && (
               <div className="flex items-center gap-2">
                 <span className="text-meta text-muted">{fileName}</span>

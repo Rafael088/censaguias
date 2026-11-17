@@ -1,5 +1,5 @@
 import { CircleAlert } from "lucide-react";
-import { useId } from "react";
+import { useId, useRef, type Ref } from "react";
 import type { InputHTMLAttributes, ReactNode } from "react";
 
 export interface FieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "id"> {
@@ -12,13 +12,15 @@ export interface FieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 
   invalid?: boolean;
   /** Primera línea en negrita de esa caja (Figma «No pudimos encontrar tu grupo»). */
   errorTitle?: ReactNode;
+  /** Ref opcional para enfocar el input desde fuera (WEB-08e). */
+  ref?: Ref<HTMLInputElement>;
 }
 
 /**
  * Campo con etiqueta, ayuda y error (Figma «CENSA / Campo»).
  * El error lleva icono «!», borde de 2 px y texto: nunca se comunica solo con color.
  */
-export function Field({ label, hint, error, invalid, errorTitle, className = "", ...rest }: FieldProps) {
+export function Field({ label, hint, error, invalid, errorTitle, className = "", ref, ...rest }: FieldProps) {
   const id = useId();
   const hintId = hint ? `${id}-hint` : undefined;
   const errorId = error ? `${id}-error` : undefined;
@@ -33,6 +35,7 @@ export function Field({ label, hint, error, invalid, errorTitle, className = "",
       <div className="relative">
         <input
           id={id}
+          ref={ref}
           aria-describedby={describedBy}
           aria-invalid={marked ? true : undefined}
           className={`min-h-[46px] w-full rounded-control border bg-surface px-3 text-body text-ink outline-none placeholder:text-muted focus:border-2 focus:border-primary ${marked ? "border-2 border-primary pr-11" : "border-line"} ${className}`}
