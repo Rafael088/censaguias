@@ -127,13 +127,17 @@ export function StaffShell({ role, space, items, children }: StaffShellProps) {
               </div>
             </div>
           </header>
-          {/* Móvil: la barra lateral no cabe; la navegación pasa a la cabecera (WEB-08 revisa el móvil). */}
-          <nav className="flex items-center gap-1 border-b border-line px-2 py-3 md:hidden" aria-label={space}>
+          {/* Móvil: la barra lateral no cabe; la navegación pasa a la cabecera. La fila
+              envuelve y cada opción mantiene 44 px de área táctil: a 390 px, o con zoom
+              del 200 %, ninguna se corta (WEB-08f). `shrink-0` evita que la barra se
+              comprima cuando la ventana es baja; el contenido scrollea en su sitio. */}
+          <nav className="flex shrink-0 flex-wrap items-center gap-1 border-b border-line px-2 py-3 md:hidden" aria-label={space}>
             {items.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`rounded-control px-3 py-2 text-label font-semibold whitespace-nowrap ${
+                aria-current={item.href === activeHref ? "page" : undefined}
+                className={`inline-flex min-h-11 items-center rounded-control px-3 text-label font-semibold whitespace-nowrap outline-none ${
                   item.href === activeHref ? "bg-primary text-white" : "text-ink hover:bg-tint"
                 }`}
               >
@@ -143,7 +147,7 @@ export function StaffShell({ role, space, items, children }: StaffShellProps) {
             <button
               type="button"
               onClick={onSignOut}
-              className="ml-auto rounded-control border border-line px-3 py-2 text-label font-semibold whitespace-nowrap text-primary"
+              className="ml-auto inline-flex min-h-11 items-center justify-center rounded-control border border-line px-3 text-label font-semibold whitespace-nowrap text-primary outline-none hover:bg-tint"
             >
               Cerrar sesión
             </button>

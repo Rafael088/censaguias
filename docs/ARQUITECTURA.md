@@ -98,3 +98,35 @@ El registro público está desactivado (Supabase → Authentication → Provider
 
 - `apps/web` y `apps/api` en Vercel como dos proyectos (raíz `apps/web` y `apps/api`). La variable `API_URL` del web apunta a la URL de la API.
 - Supabase: un proyecto para producción. Cada dev usa `supabase start` en local o un proyecto propio.
+
+### La API en Vercel
+
+Vercel detecta Hono sin configuración extra: el export por defecto de `apps/api/src/app.ts`
+es el handler `fetch` que atiende todas las rutas. Ese archivo **no abre puerto**; el
+servidor local es `apps/api/src/local-server.ts` (`npm run dev` / `npm start`). Mantenerlos
+separados evita que Vercel encuentre dos entradas posibles.
+
+`GET /health` responde `{ "ok": true }` sin necesidad de variables: es la comprobación
+mínima de que el proyecto desplegado está vivo. Las rutas `/v1/*` sí necesitan las
+variables de Supabase.
+
+| Variable (proyecto `apps/api`) | Para qué | Notas |
+| --- | --- | --- |
+| `SUPABASE_URL` | Cliente de Supabase | Project Settings → API |
+| `SUPABASE_ANON_KEY` | Cliente de Supabase | Clave publicable |
+| `SUPABASE_SERVICE_ROLE_KEY` | Acceso de la API a tablas y Storage | **Solo aquí**; nunca en el front ni con prefijo `NEXT_PUBLIC_` |
+| `STUDENT_SESSION_SECRET` | Firma de la cookie del estudiante | Mínimo 32 caracteres; distinto en producción |
+| `WEB_ORIGIN` | Origen permitido por CORS y cookies | URL pública del proyecto `apps/web` |
+| `STAFF_EMAIL_DOMAIN` | Dominio del correo sintético del staff (ADR 0006) | Opcional; por defecto `staff.censaguias.app` |
+| `PORT` | Solo servidor local | En Vercel lo asigna la plataforma |
+
+| Variable (proyecto `apps/web`) | Para qué | Notas |
+| --- | --- | --- |
+| `API_URL` | Destino del rewrite `/api/*` en `next.config.ts` | Se lee **al construir**, así que hay que definirla antes del build (también en previews). No es `NEXT_PUBLIC_`: solo la lee Next en el servidor. |
+| `NEXT_PUBLIC_SUPABASE_URL` | Login del staff (ADR 0003) | Puede ir al navegador |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Login del staff (ADR 0003) | Clave publicable |
+
+En los despliegues de preview de cada PR, apunta `API_URL` del web a la URL de preview de
+la API y `WEB_ORIGIN` de la API a la URL de preview del web, para que CORS y las cookies
+sigan funcionando. Tras desplegar, comprueba `GET <URL-de-la-API>/health`: debe devolver
+200 con `{ "ok": true }`.

@@ -1,7 +1,7 @@
 ---
 id: pro-e1nt
 fecha: 2026-11-03
-temas: []
+temas: [herramientas, proceso]
 estado: resuelto
 solucion: Exportarlo en PDF; las pantallas quedaron en `docs/diseno/`
 origen: 01-Proyectos/CensaGuias/CensaGuias.md#🪤 Problemas y soluciones:d17ffd95

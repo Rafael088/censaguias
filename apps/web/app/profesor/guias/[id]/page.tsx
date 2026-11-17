@@ -6,8 +6,10 @@ import { Breadcrumb } from "@/components/breadcrumb";
 import { Button } from "@/components/button";
 import { Field } from "@/components/field";
 import { Notice } from "@/components/notice";
+import { PdfDropzone } from "@/components/pdf-dropzone";
 import { Select } from "@/components/select";
 import { ErrorScreen, LoadingScreen } from "@/components/screen-state";
+import { formatBytes } from "@/lib/format";
 import { deleteGuide, getGuide, publishGuide, replaceGuidePdf, updateGuide, type TeacherGuide } from "@/lib/teacher";
 
 /** Editar una guía (Figma `profesor-04` y `profesor-05`): editar título/tema/descripción,
@@ -36,9 +38,15 @@ export default function EditarGuía({ params }: { params: Promise<{ id: string }
   const [errorApi, setErrorApi] = useState<string | null>(null);
   const [guardando, setGuardando] = useState(false);
 
+  const formRef = useRef<HTMLFormElement>(null);
+  /** Al enviar, el foco va al primer campo inválido: van en el orden en que se piden
+   *  y todos llevan `aria-invalid` cuando fallan. */
+  useEffect(() => {
+    formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+  }, [erroresEdicion]);
+
   // Reemplazar PDF
   const [nuevoPdf, setNuevoPdf] = useState<File | null>(null);
-  const [nuevoPdfName, setNuevoPdfName] = useState("");
   const [reemplazando, setReemplazando] = useState(false);
 
   // Publicar / despublicar
@@ -123,7 +131,6 @@ export default function EditarGuía({ params }: { params: Promise<{ id: string }
       const actualizada = await replaceGuidePdf(guideId, form);
       setGuide(actualizada);
       setNuevoPdf(null);
-      setNuevoPdfName("");
     } catch (err) {
       console.warn("[WEB-07] No se pudo reemplazar el PDF:", err);
       setErrorApi(err instanceof Error ? err.message : "No pudimos reemplazar el PDF.");
@@ -197,10 +204,11 @@ export default function EditarGuía({ params }: { params: Promise<{ id: string }
 
       <section className="flex flex-col gap-4 rounded-card border border-line bg-surface p-6">
         <h2 className="text-body font-semibold text-ink">Datos de la guía</h2>
-        <form onSubmit={(event) => void guardarDatos(event)} className="flex flex-col gap-4">
+        <form ref={formRef} onSubmit={(event) => void guardarDatos(event)} className="flex flex-col gap-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <Field
               label="Tema *"
+              aria-required
               placeholder="Ej. Ecuaciones diferenciales"
               value={topic}
               error={erroresEdicion.topic}
@@ -209,6 +217,7 @@ export default function EditarGuía({ params }: { params: Promise<{ id: string }
             />
             <Field
               label="Título *"
+              aria-required
               placeholder="Ej. Guía 1: introducción"
               value={title}
               error={erroresEdicion.title}
@@ -220,6 +229,7 @@ export default function EditarGuía({ params }: { params: Promise<{ id: string }
             <label htmlFor={descriptionId} className="text-label font-semibold text-ink">Descripción *</label>
             <textarea
               id={descriptionId}
+              aria-required
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               placeholder="Qué cubre esta guía y para qué sirve"
@@ -246,37 +256,22 @@ export default function EditarGuía({ params }: { params: Promise<{ id: string }
       <section className="flex flex-col gap-4 rounded-card border border-line bg-surface p-6">
         <h2 className="text-body font-semibold text-ink">Archivo PDF</h2>
         <div className="flex flex-col gap-1.5">
-          <label className="text-label font-semibold text-ink">Archivo PDF actual</label>
+          {/* No es etiqueta de ningún campo: no hay input que asociarle (WEB-08e). */}
+          <p className="text-label font-semibold text-ink">Archivo PDF actual</p>
           <div className="flex items-center gap-2">
             <span className="text-meta text-muted">{guide.fileName}</span>
-            <span className="text-meta text-muted">({Math.round(guide.sizeBytes / 1024)} KB)</span>
+            <span className="text-meta text-muted">{formatBytes(guide.sizeBytes)} · PDF adjunto correctamente</span>
           </div>
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="archivo-pdf-reemplazo" className="text-label font-semibold text-ink">
-              Reemplazar PDF
-            </label>
-            <input
-              id="archivo-pdf-reemplazo"
-              type="file"
-              accept=".pdf"
-              onChange={(event) => {
-                const f = event.target.files?.[0] ?? null;
-                setNuevoPdf(f);
-                setNuevoPdfName(f ? f.name : "");
-              }}
-              className="min-h-[46px] w-full rounded-control border border-line bg-surface px-3 text-body text-ink outline-none focus:border-2 focus:border-primary"
-            />
-            {nuevoPdf && (
-              <div className="flex items-center gap-2">
-                <span className="text-meta text-muted">{nuevoPdfName}</span>
-                <span className="text-meta text-muted">({Math.round(nuevoPdf.size / 1024)} KB)</span>
-              </div>
-            )}
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="secondary" type="button" disabled={reemplazando || !nuevoPdf} onClick={() => setNuevoPdf(null)}>
-              Limpiar
-            </Button>
+          <PdfDropzone
+            file={nuevoPdf}
+            onChange={setNuevoPdf}
+            label="Reemplazar PDF"
+            hint="Elige un nuevo PDF para sustituir el actual. Máximo 10 MB."
+            replaceLabel="Cambiar PDF"
+            removeLabel="Quitar PDF nuevo"
+            disabled={reemplazando}
+          />
+          <div className="flex justify-end">
             <Button onClick={() => void reemplazarPdf()} disabled={reemplazando || !nuevoPdf}>
               {reemplazando ? "Reemplazando…" : "Reemplazar PDF"}
             </Button>
