@@ -38,7 +38,9 @@ vercel link
 
 `vercel link` crea el proyecto si no existe (elige el equipo y ponle por ejemplo `censaguias-api`). Crea `apps/api/.vercel/`. Comprueba en el dashboard que **Settings → General → Root Directory** sea `apps/api`.
 
-Vercel detecta Hono por el `export default app` de `src/app.ts`: **no hace falta `vercel.json`** ni configurar un builder a mano (INF-02b lo dejó listo).
+Vercel detecta Hono por el `export default app` de `src/app.ts`. `apps/api/vercel.json`
+activa el builder moderno de backends para que TypeScript, ESM y los imports del monorepo se
+resuelvan igual en Production y Preview; no configures otro builder ni un directorio de salida.
 
 Variables de entorno (la CLI te pide el valor de forma interactiva; para secretos añade `--sensitive`):
 
