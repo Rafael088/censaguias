@@ -181,6 +181,53 @@ export async function replaceGuidePdf(guideId: string, form: FormData): Promise<
   return ok<TeacherGuide>(res);
 }
 
+/** API-05b: pide una URL firmada de escritura para subir el PDF directo a Supabase Storage.
+ *  Se usa cuando el archivo es demasiado grande para el body de Vercel (~4,5 MB).
+ */
+export async function getGuideUploadUrl(subjectId: string): Promise<{
+  uploadUrl: string;
+  storagePath: string;
+  guideId: string;
+}> {
+  const res = await fetch(`/api/v1/subjects/${subjectId}/guides/upload-url`, {
+    headers: await authHeaders(),
+    credentials: "include",
+    method: "POST",
+  });
+  return ok<{ uploadUrl: string; storagePath: string; guideId: string }>(res);
+}
+
+/** API-05b: confirma la creación de la guía tras subir el PDF directo a Storage.
+ *  Recibe la metadata y la ruta de storage, y crea la fila en BD.
+ */
+export async function confirmGuide(
+  subjectId: string,
+  input: { topic: string; title: string; description: string; status: "draft" | "published" },
+  storagePath: string,
+  fileName: string,
+  sizeBytes: number,
+  pageCount: number | null,
+): Promise<TeacherGuide> {
+  const headers = await authHeaders();
+  headers.set("Content-Type", "application/json");
+  const res = await fetch(`/api/v1/subjects/${subjectId}/guides/commit`, {
+    headers,
+    credentials: "include",
+    method: "POST",
+    body: JSON.stringify({
+      topic: input.topic,
+      title: input.title,
+      description: input.description,
+      status: input.status,
+      storagePath,
+      fileName,
+      sizeBytes,
+      pageCount,
+    }),
+  });
+  return ok<TeacherGuide>(res);
+}
+
 /** Borrar una guía y su PDF (profesor-05). */
 export async function deleteGuide(guideId: string): Promise<void> {
   const res = await fetch(`/api/v1/guides/${guideId}`, {

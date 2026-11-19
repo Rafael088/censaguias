@@ -9,7 +9,14 @@ import { Field } from "@/components/field";
 import { Notice } from "@/components/notice";
 import { PdfDropzone } from "@/components/pdf-dropzone";
 import { ErrorScreen, LoadingScreen } from "@/components/screen-state";
-import { createGuide, getTeacherOverview, validateGuideForm, type TeacherSubject } from "@/lib/teacher";
+import {
+  confirmGuide,
+  createGuide,
+  getGuideUploadUrl,
+  getTeacherOverview,
+  validateGuideForm,
+  type TeacherSubject,
+} from "@/lib/teacher";
 
 /** Subir una guía (Figma `profesor-03`): destino con datos reales, tema, título,
  *  descripción y el archivo PDF (máx. 10 MB), con dos salidas —Guardar borrador y
@@ -114,10 +121,25 @@ export default function SubirGuía({ params }: { params: Promise<{ id: string }>
     enviando.current = true;
     setGuardando(estadoFinal);
     try {
-      await createGuide(subjectId, form);
-      setCreada({ status: estadoFinal, titulo: input.title });
+      // API-05b: si el PDF supera el umbral de Vercel (~4,5 MB), subimos directo a
+      // Supabase Storage con una URL firmada y luego confirmamos la fila en la API.
+      // Si no, usamos el flujo normal (multipart) que ya funcionaba.
+      const UMBRAL_VERCEL_BYTES = 4 * 1024 * 1024; // 4 MB
+      if (file && file.size > UMBRAL_VERCEL_BYTES) {
+        const { uploadUrl, storagePath, guideId } = await getGuideUploadUrl(subjectId);
+        await fetch(uploadUrl, {
+          method: "PUT",
+          body: file,
+          headers: { "Content-Type": file.type },
+        });
+        await confirmGuide(subjectId, input, storagePath, file.name, file.size, null);
+        setCreada({ status: estadoFinal, titulo: input.title });
+      } else {
+        await createGuide(subjectId, form);
+        setCreada({ status: estadoFinal, titulo: input.title });
+      }
     } catch (err) {
-      console.warn("[WEB-07c] No se pudo subir la guía:", err);
+      console.warn("[API-05b] No se pudo subir la guía:", err);
       setErrorApi(err instanceof Error ? err.message : "No pudimos subir la guía.");
     } finally {
       enviando.current = false;

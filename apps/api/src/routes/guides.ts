@@ -12,6 +12,34 @@ import { countPdfPages, readPdfBytes, isPdfRejection } from "../lib/pdf.js";
 // Guías de una materia: crear (multipart con el PDF) y listar (con filtros).
 // Solo el docente a cargo de la materia. Se monta en /v1/subjects con /:id/guides dentro.
 export const subjectGuideRoutes = new Hono<{ Variables: AppVars }>()
+  /**
+   * API-05b: URL firmada de escritura para subir el PDF directo a Supabase Storage.
+   * Se usa cuando el body es demasiado grande para Vercel (~4.5 MB). El front pide
+   * esta URL, sube el archivo directo a Storage y luego confirma con /commit.
+   */
+  .post(
+    "/:id/guides/upload-url",
+    requireStaff("teacher"),
+    async (c) => {
+      const db = supabaseAdmin();
+      const subject = await findSubject(db, c.req.param("id"));
+      assertSubjectTeacher(subject, c.get("staff").id);
+
+      const guideId = crypto.randomUUID();
+      const storagePath = `${subject.group_id}/${subject.id}/${guideId}.pdf`;
+
+      const { data, error } = await db.storage
+        .from(GUIDES_BUCKET)
+        .createSignedUploadUrl(storagePath);
+      if (error) throwSupabase(error as { message: string });
+
+      return c.json({
+        uploadUrl: data.signedUrl,
+        storagePath,
+        guideId,
+      });
+    },
+  )
   .get(
     "/:id/guides",
     requireStaff("teacher"),
@@ -102,7 +130,55 @@ export const subjectGuideRoutes = new Hono<{ Variables: AppVars }>()
       throwSupabase(error);
     }
     return c.json(mapGuide(data as GuideRow), 201);
-  });
+  })
+  /**
+   * API-05b: confirma la creación de una guía tras subir el PDF directo a Storage
+   * (subida firmada). Recibe la metadata y la ruta de storage, y crea la fila en BD.
+   */
+  .post(
+    "/:id/guides/commit",
+    requireStaff("teacher"),
+    async (c) => {
+      const db = supabaseAdmin();
+      const subject = await findSubject(db, c.req.param("id"));
+      assertSubjectTeacher(subject, c.get("staff").id);
+
+      const body = await c.req.json();
+      const { topic, title, description, status, storagePath, fileName, sizeBytes, pageCount } = body as {
+        topic: string;
+        title: string;
+        description: string;
+        status: "draft" | "published";
+        storagePath: string;
+        fileName: string;
+        sizeBytes: number;
+        pageCount: number | null;
+      };
+
+      const guideId = crypto.randomUUID();
+
+      const { data, error } = await db
+        .from("guides")
+        .insert({
+          id: guideId,
+          subject_id: subject.id,
+          topic,
+          title,
+          description,
+          status,
+          published_at: status === "published" ? new Date().toISOString() : null,
+          storage_path: storagePath,
+          file_name: fileName,
+          size_bytes: sizeBytes,
+          page_count: pageCount,
+          created_by: c.get("staff").id,
+        })
+        .select(GUIDE_COLUMNS)
+        .single();
+      if (error) throwSupabase(error);
+      return c.json(mapGuide(data as GuideRow), 201);
+    },
+  );
 
 // Guías sueltas: detalle, editar (con el PDF opcional para reemplazarlo), eliminar (con
 // su archivo) y publicar un borrador (pantallas profesor-04, 05 y 06). Se monta en /v1/guides.
